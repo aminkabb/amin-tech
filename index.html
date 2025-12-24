@@ -3,206 +3,785 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amin Tech | منصة المستقبل</title>
-    
+    <title>Amin Tech | منصة المستقبل التقني</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        dark: '#0f172a',
-                        brand: '#ef4444',
-                    },
-                    fontFamily: {
-                        cairo: ['Cairo', 'sans-serif'],
-                    },
-                    animation: {
-                        'fade-in-up': 'fadeInUp 0.8s ease-out',
-                        'float': 'float 6s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #020617; color: #fff; overflow-x: hidden; }
-        
-        /* سكرول بار شيك */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 4px; }
-
-        /* كلاسات الزجاج (Glass Effect) */
-        .glass {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        :root {
+            --primary: #8b5cf6;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --dark: #0f172a;
+            --light: #f8fafc;
         }
         
-        .course-card {
-            transition: all 0.4s ease;
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: #0f172a; 
+            color: #fff; 
+            overflow-x: hidden;
         }
-        .course-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px -10px rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.5);
+        
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, var(--primary), var(--secondary)); border-radius: 5px; }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .glass-card:hover { 
+            transform: translateY(-10px) scale(1.02); 
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
         }
 
-        /* تنسيق الفيديو */
-        .video-box {
+        .gradient-text {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 900;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7)), 
+                        url('https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?q=80&w=2069');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .video-wrapper {
             position: relative;
-            padding-bottom: 56.25%;
+            padding-bottom: 56.25%; /* 16:9 ratio */
             background: #000;
             border-radius: 16px;
             overflow: hidden;
-            border: 1px solid #334155;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
-        .video-box iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .video-wrapper iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+        }
 
-        .playlist-item { border-right: 3px solid transparent; transition: 0.2s; }
-        .playlist-item:hover { background: rgba(255,255,255,0.05); }
-        .playlist-item.active { background: rgba(239, 68, 68, 0.15); border-right-color: #ef4444; }
+        .playlist-item.active { 
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.2), rgba(16, 185, 129, 0.1)); 
+            border-right: 4px solid var(--primary); 
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+        
+        .typewriter h1 {
+            overflow: hidden;
+            border-right: .15em solid var(--primary);
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--primary); }
+        }
+        
+        .stats-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 30px;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--primary);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .language-switcher {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .lang-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .lang-btn:hover, .lang-btn.active {
+            background: var(--primary);
+            transform: scale(1.1);
+        }
+        
+        .nav-link {
+            position: relative;
+            padding: 5px 0;
+            margin: 0 15px;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .dark-mode-toggle {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        .course-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+        
+        .testimonial-card {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 16px;
+            padding: 25px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            font-size: 100px;
+            color: var(--primary);
+            opacity: 0.2;
+            font-family: serif;
+        }
+        
+        @media (max-width: 768px) {
+            .language-switcher {
+                top: 80px;
+                left: 10px;
+            }
+            
+            .dark-mode-toggle {
+                bottom: 20px;
+                left: 20px;
+            }
+        }
     </style>
 </head>
-<body class="antialiased bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+<body class="bg-slate-900 text-slate-100">
 
-    <div id="video-overlay" class="fixed inset-0 bg-black/95 z-[100] hidden flex flex-col backdrop-blur-xl animate-fade-in-up">
-        <div class="p-4 flex justify-between items-center border-b border-white/10 bg-slate-900/50">
-            <button onclick="closePlayer()" class="glass hover:bg-red-600 text-white px-6 py-2 rounded-full transition font-bold flex items-center gap-2">
-                <span>✕</span> إغلاق
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+        <div class="lang-btn active" data-lang="ar">ع</div>
+        <div class="lang-btn" data-lang="en">EN</div>
+        <div class="lang-btn" data-lang="fr">FR</div>
+    </div>
+    
+    <!-- Dark Mode Toggle -->
+    <div class="dark-mode-toggle" id="dark-mode-toggle">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <!-- Video Player Overlay -->
+    <div id="video-overlay" class="fixed inset-0 bg-black/95 z-50 hidden flex flex-col">
+        <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/90">
+            <button onclick="closePlayer()" class="bg-slate-800 hover:bg-purple-600 px-4 py-2 rounded-lg font-bold transition flex items-center gap-2">
+                <i class="fas fa-times"></i> إغلاق
             </button>
-            <div class="text-xl font-bold">Amin<span class="text-brand">Player</span> 📺</div>
+            <span id="course-title-display" class="font-bold text-xl gradient-text"></span>
+            <div class="flex items-center gap-3">
+                <button id="fullscreen-btn" class="bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button id="pip-btn" class="bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg transition">
+                    <i class="fas fa-picture-in-picture"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="flex-1 overflow-hidden flex flex-col lg:flex-row">
-            <div class="flex-1 flex flex-col relative overflow-y-auto p-4 lg:p-8 justify-center">
-                <div class="video-box w-full max-w-6xl mx-auto mb-6">
-                    <iframe id="main-frame" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+            <div class="flex-1 p-4 lg:p-8 flex flex-col justify-center overflow-y-auto">
+                <div class="video-wrapper w-full max-w-5xl mx-auto">
+                    <iframe id="main-frame" src="" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
                 </div>
-                <div class="max-w-6xl mx-auto w-full">
-                    <h1 id="video-title-display" class="text-2xl md:text-3xl font-bold mb-2 text-white">...</h1>
-                    <p id="video-desc-display" class="text-slate-400 text-sm leading-relaxed">...</p>
+                <div class="mt-6 max-w-5xl mx-auto w-full">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 id="video-title-display" class="text-2xl font-bold text-white">...</h2>
+                        <div class="flex items-center gap-2">
+                            <span id="video-duration" class="bg-slate-800 px-3 py-1 rounded-full text-sm">00:00</span>
+                            <span id="video-views" class="bg-slate-800 px-3 py-1 rounded-full text-sm">
+                                <i class="fas fa-eye mr-1"></i> 0
+                            </span>
+                        </div>
+                    </div>
+                    <p id="video-desc-display" class="text-slate-300 mb-4">...</p>
+                    <div class="flex items-center justify-between border-t border-slate-700 pt-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold">  أمين الشيشيني</p>
+                                <p class="text-slate-400 text-sm">Sorfware Engineer</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg transition">
+                                <i class="fas fa-download mr-2"></i>تحميل المواد
+                            </button>
+                            <button class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition">
+                                <i class="fas fa-share-alt mr-2"></i>مشاركة
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="w-full lg:w-96 bg-slate-900/80 border-r border-white/5 flex flex-col h-1/3 lg:h-full backdrop-blur-md">
-                <div class="p-4 border-b border-white/5 bg-slate-900">
-                    <h3 class="font-bold text-lg text-brand">📚 محتوى الكورس</h3>
+
+            <div class="w-full lg:w-96 bg-slate-800/80 border-r border-white/5 flex flex-col h-1/3 lg:h-full">
+                <div class="p-4 bg-slate-900 font-bold text-center border-b border-white/5 flex justify-between items-center">
+                    <span>قائمة الدروس</span>
+                    <span id="playlist-count" class="bg-slate-700 px-3 py-1 rounded-full text-sm">0 درس</span>
                 </div>
-                <div id="playlist-items" class="flex-1 overflow-y-auto p-2 space-y-2"></div>
+                <div id="playlist-items" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+                <div class="p-4 border-t border-white/5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-slate-300">تقدمك في هذه الدورة</span>
+                        <span id="course-progress-percent" class="font-bold">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="course-progress-fill" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <nav class="glass sticky top-0 z-40 border-b-0">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-            <a href="#" class="text-3xl font-black tracking-tighter text-white">
-                Amin<span class="text-brand">Tech</span>
-            </a>
-            <div class="hidden md:flex gap-8 items-center">
-                <a href="#home" class="font-bold text-slate-300 hover:text-white transition">الرئيسية</a>
-                <a href="#courses" class="font-bold text-slate-300 hover:text-white transition">الكورسات</a>
-                <a href="#contact" class="bg-brand text-white px-6 py-2.5 rounded-full font-bold hover:shadow-[0_0_20px_rgba(239,68,68,0.5)] transition transform hover:-translate-y-0.5">
-                    اطلب مشروعك
-                </a>
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-lg border-b border-white/10 py-4">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full gradient-bg flex items-center justify-center">
+                    <i class="fas fa-laptop-code text-white text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-black">Amin<span class="gradient-text">Tech</span></h1>
+            </div>
+            
+            <div class="hidden lg:flex items-center gap-8">
+                <a href="#home" class="nav-link font-bold">الرئيسية</a>
+                <a href="#courses" class="nav-link">الكورسات</a>
+                <a href="#features" class="nav-link">المميزات</a>
+                <a href="#testimonials" class="nav-link">آراء العملاء</a>
+                <a href="#contact" class="nav-link">اتصل بنا</a>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button id="search-btn" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-lg">
+                    <i class="fas fa-search"></i>
+                </button>
+                <a href="#contact" class="bg-gradient-to-l from-purple-600 to-emerald-500 px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 transition pulse">ابدأ الآن</a>
+                <button id="mobile-menu-btn" class="lg:hidden bg-slate-800 p-2 rounded-lg">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="lg:hidden bg-slate-900 border-t border-white/10 mt-4 p-4 hidden">
+            <div class="flex flex-col gap-4">
+                <a href="#home" class="py-2 font-bold">الرئيسية</a>
+                <a href="#courses" class="py-2">الكورسات</a>
+                <a href="#features" class="py-2">المميزات</a>
+                <a href="#testimonials" class="py-2">آراء العملاء</a>
+                <a href="#contact" class="py-2">اتصل بنا</a>
+            </div>
+        </div>
+        
+        <!-- Search Bar -->
+        <div id="search-bar" class="max-w-3xl mx-auto mt-4 px-4 hidden">
+            <div class="relative">
+                <input type="text" id="search-input" placeholder="ابحث عن كورس أو درس..." class="w-full p-4 pr-12 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div id="search-results" class="mt-2 bg-slate-800 rounded-xl p-4 hidden">
+                <p class="text-slate-400 text-sm">اكتب للبحث عن المحتوى...</p>
             </div>
         </div>
     </nav>
 
-    <section id="home" class="relative pt-32 pb-24 px-4 overflow-hidden text-center">
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] -z-10 animate-float"></div>
-        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-red-600/20 rounded-full blur-[100px] -z-10 animate-float" style="animation-delay: 2s"></div>
-
-        <div class="max-w-4xl mx-auto relative z-10 animate-fade-in-up">
-            <span class="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/10 text-brand text-sm font-bold mb-6">🚀 منصة التطوير الشاملة</span>
-            <h1 class="text-5xl md:text-7xl font-black text-white mb-8 leading-tight">
-                احترف البرمجة وابنِ <br/>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-red-500">مستقبلك الرقمي</span>
-            </h1>
-            <p class="text-slate-400 text-xl mb-10 max-w-2xl mx-auto">
-                تعلم أحدث التقنيات (Flutter, Web, AI) أو دعنا نبني مشروعك القادم بأعلى جودة واحترافية.
-            </p>
-            <div class="flex justify-center gap-4">
-                <a href="#courses" class="bg-white text-slate-900 px-8 py-4 rounded-xl font-bold hover:scale-105 transition shadow-lg">تصفح الكورسات</a>
-                <a href="#contact" class="glass text-white px-8 py-4 rounded-xl font-bold hover:bg-white/10 transition">تواصل معنا</a>
+    <!-- Hero Section -->
+    <section id="home" class="hero-gradient py-20 px-4 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="text-center lg:text-right">
+                    <div class="inline-block bg-gradient-to-l from-purple-600/20 to-emerald-500/20 px-4 py-2 rounded-full mb-6">
+                        <span class="text-sm font-bold">منصة المستقبل التقني</span>
+                    </div>
+                    <h1 class="text-4xl lg:text-6xl font-black mb-6">
+                        <span class="block">طور مهاراتك</span>
+                        <span class="gradient-text typewriter">في عالم البرمجة</span>
+                    </h1>
+                    <p class="text-xl text-slate-300 mb-8">
+                        انضم إلى آلاف المتعلمين الذين طوروا مهاراتهم التقنية مع منصتنا ووصلوا إلى أهدافهم المهنية
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <button onclick="openPlayer('all', 'جميع الكورسات')" class="bg-gradient-to-l from-purple-600 to-emerald-500 px-8 py-3 rounded-xl font-bold text-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-play-circle"></i> ابدأ التعلم الآن
+                        </button>
+                        <a href="#courses" class="bg-slate-800 hover:bg-slate-700 px-8 py-3 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2">
+                            <i class="fas fa-book-open"></i> استعرض الكورسات
+                        </a>
+                    </div>
+                    
+                    <div class="mt-12 grid grid-cols-3 gap-6">
+                        <div class="stats-card">
+                            <h3 class="text-3xl font-black gradient-text mb-2">+500</h3>
+                            <p class="text-slate-400">درس تعليمي</p>
+                        </div>
+                        <div class="stats-card">
+                            <h3 class="text-3xl font-black gradient-text mb-2">+10K</h3>
+                            <p class="text-slate-400">متعلم نشط</p>
+                        </div>
+                        <div class="stats-card">
+                            <h3 class="text-3xl font-black gradient-text mb-2">98%</h3>
+                            <p class="text-slate-400">رضا العملاء</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <div class="relative floating">
+                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070" class="rounded-2xl shadow-2xl" alt="برمجة">
+                        <div class="absolute -bottom-6 -right-6 bg-gradient-to-l from-purple-600 to-emerald-500 p-6 rounded-2xl shadow-2xl">
+                            <div class="text-white">
+                                <p class="font-bold text-lg">كورس جديد!</p>
+                                <p class="text-sm">تعلم الذكاء الاصطناعي</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="absolute -top-6 -left-6 w-24 h-24 bg-gradient-to-l from-purple-600 to-pink-600 rounded-full opacity-20 animate-pulse"></div>
+                    <div class="absolute -bottom-10 left-10 w-16 h-16 bg-gradient-to-l from-emerald-500 to-cyan-500 rounded-full opacity-20 animate-pulse"></div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section id="courses" class="py-24 px-4 relative">
+    <!-- Courses Section -->
+    <section id="courses" class="py-20 px-4">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-black text-white mb-4">الكورسات المتاحة</h2>
-                <div class="h-1 w-24 bg-brand mx-auto rounded-full"></div>
+                <h2 class="text-4xl font-black mb-4">الكورسات <span class="gradient-text">المتاحة</span></h2>
+                <p class="text-xl text-slate-400 max-w-3xl mx-auto">اختر من بين مجموعة واسعة من الكورسات التقنية التي صممت خصيصاً لمساعدتك على النجاح في سوق العمل</p>
             </div>
-
-            <div id="loader" class="text-center py-20">
-                <div class="w-16 h-16 border-4 border-slate-700 border-t-red-500 rounded-full animate-spin mx-auto"></div>
-                <p class="mt-4 text-slate-500">جاري تحميل البيانات...</p>
+            
+            <!-- Categories -->
+            <div class="flex flex-wrap gap-4 justify-center mb-10">
+                <button class="category-btn active px-5 py-2 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 font-bold" data-category="all">الكل</button>
+                <button class="category-btn px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 font-bold" data-category="web">تطوير الويب</button>
+                <button class="category-btn px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 font-bold" data-category="mobile">تطبيقات الموبايل</button>
+                <button class="category-btn px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 font-bold" data-category="ai">الذكاء الاصطناعي</button>
+                <button class="category-btn px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 font-bold" data-category="design">التصميم</button>
             </div>
-
-            <div id="courses-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 hidden">
+            
+            <div id="loader" class="text-center py-10">
+                <div class="inline-block">
+                    <div class="w-16 h-16 border-4 border-t-purple-600 border-r-emerald-500 border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                    <p class="mt-4 text-slate-400">جاري تحميل الكورسات...</p>
                 </div>
+            </div>
+            
+            <div id="courses-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 hidden"></div>
+            
+            <div class="text-center mt-12">
+                <button id="load-more" class="bg-slate-800 hover:bg-slate-700 px-8 py-3 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 mx-auto">
+                    <i class="fas fa-sync-alt"></i> تحميل المزيد
+                </button>
+            </div>
         </div>
     </section>
 
-    <section id="contact" class="py-24 bg-slate-900/50 border-y border-white/5 relative">
-        <div class="max-w-3xl mx-auto px-4">
-            <div class="glass rounded-3xl p-8 md:p-12 text-center">
-                <h2 class="text-3xl font-black text-white mb-4">ابدأ مشروعك الآن 💼</h2>
-                <p class="text-slate-400 mb-8">املأ البيانات وهنتواصل معاك فوراً لتنفيذ فكرتك</p>
-
-                <form id="hire-form" class="space-y-4 text-right">
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <input type="text" id="clientName" required class="w-full px-5 py-4 rounded-xl bg-slate-950 border border-white/10 text-white focus:border-brand focus:outline-none transition" placeholder="الاسم بالكامل">
-                        <input type="tel" id="clientPhone" required class="w-full px-5 py-4 rounded-xl bg-slate-950 border border-white/10 text-white focus:border-brand focus:outline-none transition" placeholder="رقم الواتساب">
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-slate-800/50 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-black mb-4">لماذا تختار <span class="gradient-text">Amin Tech؟</span></h2>
+                <p class="text-xl text-slate-400 max-w-3xl mx-auto">نقدم لك تجربة تعليمية فريدة تجمع بين المحتوى عالي الجودة والأدوات الحديثة</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="glass-card p-6 rounded-2xl text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-video"></i>
                     </div>
-                    <select id="serviceType" class="w-full px-5 py-4 rounded-xl bg-slate-950 border border-white/10 text-white focus:border-brand focus:outline-none cursor-pointer">
-                        <option value="Web">🛠 تطوير موقع ويب</option>
-                        <option value="Mobile">📱 تطبيق موبايل (Flutter)</option>
-                        <option value="AI">🤖 ذكاء اصطناعي</option>
-                        <option value="Other">✨ أخرى</option>
-                    </select>
-                    <textarea id="projectDetails" rows="4" required class="w-full px-5 py-4 rounded-xl bg-slate-950 border border-white/10 text-white focus:border-brand focus:outline-none transition" placeholder="تفاصيل المشروع..."></textarea>
-                    
-                    <button type="submit" class="w-full bg-brand text-white font-bold py-4 rounded-xl hover:bg-red-700 transition transform hover:scale-[1.02] shadow-lg shadow-red-900/50">
-                        إرسال الطلب 🚀
-                    </button>
-                </form>
-
-                <div id="form-msg" class="hidden mt-6 p-4 rounded-xl bg-green-500/10 border border-green-500 text-green-400 font-bold">
-                    ✅ تم استلام طلبك بنجاح!
+                    <h3 class="font-bold text-xl mb-3">دروس عالية الجودة</h3>
+                    <p class="text-slate-400">دروس فيديو عالية الدودة مع أمثلة عملية وتطبيقات حقيقية</p>
+                </div>
+                
+                <div class="glass-card p-6 rounded-2xl text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3">شهادات معتمدة</h3>
+                    <p class="text-slate-400">احصل على شهادات معتمدة مع إتمام كل كورس تضيف قيمة لسيرتك الذاتية</p>
+                </div>
+                
+                <div class="glass-card p-6 rounded-2xl text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3">دعم فني مستمر</h3>
+                    <p class="text-slate-400">فريق دعم فني متاح على مدار الساعة لمساعدتك في أي استفسار</p>
+                </div>
+                
+                <div class="glass-card p-6 rounded-2xl text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3">منصة متعددة الأجهزة</h3>
+                    <p class="text-slate-400">تعلم من أي مكان ومن أي جهاز (حاسوب، هاتف، تابلت)</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="bg-black py-10 text-center border-t border-white/10 text-slate-500">
-        <h3 class="text-2xl font-black text-white mb-2">Amin<span class="text-brand">Tech</span></h3>
-        <p>© 2025 جميع الحقوق محفوظة</p>
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="py-20 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-black mb-4">ماذا يقول <span class="gradient-text">المتعلمون؟</span></h2>
+                <p class="text-xl text-slate-400 max-w-3xl mx-auto">انضم إلى آلاف المتعلمين الراضين عن تجربتهم التعليمية معنا</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="testimonial-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center text-white font-bold">
+                            م.س
+                        </div>
+                        <div>
+                            <p class="font-bold">محمد السيد</p>
+                            <p class="text-slate-400 text-sm">مطور ويب</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300">"الدورات ساعدتني في الانتقال من مبتدئ إلى محترف في تطوير الويب، والآن أعمل في شركة تقنية كبيرة بفضل ما تعلمته هنا."</p>
+                    <div class="flex mt-4">
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center text-white font-bold">
+                            أ.ع
+                        </div>
+                        <div>
+                            <p class="font-bold">أسماء علاء</p>
+                            <p class="text-slate-400 text-sm">مصممة واجهات</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300">"المحتوى منظم بشكل رائع والتمارين العملية ساعدتني في بناء مشروعي الخاص. أنصح أي شخص يريد تعلم التصميم."</p>
+                    <div class="flex mt-4">
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center text-white font-bold">
+                            خ.م
+                        </div>
+                        <div>
+                            <p class="font-bold">خالد مصطفى</p>
+                            <p class="text-slate-400 text-sm">مطور تطبيقات</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-300">"كورس تطوير تطبيقات الموبايل كان مفصلاً وشاملاً. استطعت بناء أول تطبيق لي ونشره على متاجر التطبيقات خلال شهرين فقط."</p>
+                    <div class="flex mt-4">
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                        <i class="fas fa-star text-yellow-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-slate-800 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-4xl font-black mb-6">ابدأ <span class="gradient-text">مشروعك</span> معنا</h2>
+                    <p class="text-slate-300 mb-8">هل لديك فكرة مشروع تقني؟ تواصل معنا وسنعمل معك لتحويل فكرتك إلى واقع ملموس بأعلى معايير الجودة.</p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center">
+                                <i class="fas fa-phone text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold">اتصل بنا</p>
+                                <p class="text-slate-400">+20 123 456 7890</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center">
+                                <i class="fas fa-envelope text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold">البريد الإلكتروني</p>
+                                <p class="text-slate-400">info@amintech.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center">
+                                <i class="fas fa-map-marker-alt text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold">العنوان</p>
+                                <p class="text-slate-400">القاهرة، مصر</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4 mt-8">
+                        <a href="#" class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="w-12 h-12 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-8 rounded-2xl">
+                    <form id="hire-form" class="space-y-5">
+                        <div>
+                            <label class="block text-slate-300 mb-2">الاسم الكامل</label>
+                            <input id="clientName" type="text" placeholder="أدخل اسمك" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-slate-300 mb-2">البريد الإلكتروني</label>
+                            <input id="clientEmail" type="email" placeholder="example@email.com" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-slate-300 mb-2">رقم الهاتف</label>
+                            <input id="clientPhone" type="tel" placeholder="+20 123 456 7890" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-slate-300 mb-2">نوع المشروع</label>
+                            <select id="projectType" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                                <option value="">اختر نوع المشروع</option>
+                                <option value="web">تطوير موقع ويب</option>
+                                <option value="mobile">تطبيق موبايل</option>
+                                <option value="design">تصميم جرافيك</option>
+                                <option value="consultation">استشارة تقنية</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-slate-300 mb-2">تفاصيل المشروع</label>
+                            <textarea id="projectDetails" rows="4" placeholder="صف فكرة مشروعك بالتفصيل..." class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-l from-purple-600 to-emerald-500 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i> إرسال الطلب
+                        </button>
+                    </form>
+                    <div id="form-msg" class="hidden mt-4 p-4 rounded-xl bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-500/30 text-green-400 font-bold text-center"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 bg-slate-900 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8 mb-10">
+                <div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center">
+                            <i class="fas fa-laptop-code text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-black">Amin<span class="gradient-text">Tech</span></h3>
+                    </div>
+                    <p class="text-slate-400">منصة تعليمية تقنية رائدة تهدف إلى تمكين الأفراد بالمهارات الرقمية اللازمة لسوق العمل الحديث.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-6">روابط سريعة</h4>
+                    <ul class="space-y-3 text-slate-400">
+                        <li><a href="#home" class="hover:text-white transition">الرئيسية</a></li>
+                        <li><a href="#courses" class="hover:text-white transition">الكورسات</a></li>
+                        <li><a href="#features" class="hover:text-white transition">المميزات</a></li>
+                        <li><a href="#testimonials" class="hover:text-white transition">آراء العملاء</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-6">الكورسات الشائعة</h4>
+                    <ul class="space-y-3 text-slate-400">
+                        <li><a href="#" class="hover:text-white transition">تطوير الويب المتكامل</a></li>
+                        <li><a href="#" class="hover:text-white transition">تطبيقات الموبايل</a></li>
+                        <li><a href="#" class="hover:text-white transition">الذكاء الاصطناعي</a></li>
+                        <li><a href="#" class="hover:text-white transition">تصميم واجهات المستخدم</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-6">النشرة البريدية</h4>
+                    <p class="text-slate-400 mb-4">اشترك لتصلك آخر العروض والدورات الجديدة</p>
+                    <div class="flex">
+                        <input type="email" placeholder="بريدك الإلكتروني" class="flex-1 p-3 rounded-r-lg bg-slate-800 border border-slate-700 text-white focus:outline-none">
+                        <button class="bg-gradient-to-l from-purple-600 to-emerald-500 px-4 rounded-l-lg font-bold hover:opacity-90 transition">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pt-8 border-t border-white/5 text-center text-slate-500">
+                <p>© 2025 Amin Tech. جميع الحقوق محفوظة.</p>
+                <p class="text-sm mt-2">تم التطوير بواسطة فريق Amin Tech</p>
+            </div>
+        </div>
     </footer>
 
-   <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // إعدادات الفايربيز
         const firebaseConfig = {
             apiKey: "AIzaSyCI49mQ4v0xRO1RsbiAD23VLZEvzqZI3IE",
             authDomain: "myquizapp-f2686.firebaseapp.com",
@@ -216,151 +795,471 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         let allVideos = [];
+        let allCourses = [];
+        let currentCategory = 'all';
 
-        // تسجيل الدخول الصامت (مهم جداً للبيانات)
         signInAnonymously(auth).then(() => {
-            console.log("Logged in!");
             loadCourses();
-        }).catch((error) => {
-            console.error("Auth Error:", error);
-        });
+            loadTestimonials();
+        }).catch(e => console.error("Auth Error:", e));
 
-        // ---[ الدالة المصفحة: بتنظف الرابط وتعرف هو يوتيوب ولا درايف ]---
+        // ---[ الدالة المعجزة للفصل بين يوتيوب ودرايف ]---
         function getSmartUrl(url) {
             if (!url) return "";
             
-            // 1. تنظيف الرابط من المسافات (أهم خطوة)
-            let cleanUrl = url.trim(); 
-
-            // 2. لو يوتيوب
-            if (cleanUrl.includes("youtu")) {
+            // 1. لو يوتيوب (بكل أشكاله)
+            if (url.includes("youtu")) {
                 const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-                const match = cleanUrl.match(regExp);
+                const match = url.match(regExp);
                 const id = (match && match[2].length === 11) ? match[2] : null;
-                // استخدام embed مباشر لتجنب مشاكل API
-                return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0` : cleanUrl;
+                // بنستخدم embed عادي عشان يشتغل على كل الأجهزة
+                return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&showinfo=0` : url;
             }
             
-            // 3. لو جوجل درايف
-            if (cleanUrl.includes("drive.google.com")) {
-                // تحويل أي صيغة لرابط "preview" اللي بيشتغل جوه المواقع
-                // بنشيل /view واي حاجة بعدها ونحط /preview
-                return cleanUrl.replace(/\/view.*/, '/preview').replace(/\/preview.*/, '/preview');
+            // 2. لو جوجل درايف (الحل النهائي)
+            if (url.includes("drive.google.com")) {
+                // بنحول رابط /view لـ /preview عشان يشتغل embed
+                return url.replace("/view", "/preview").replace("usp=sharing", "") + "?autoplay=1";
             }
 
-            // 4. لو رابط مباشر (mp4) أو غيره
-            return cleanUrl;
-        }
-
-        // --- باقي الكود زي ما هو ---
-        
-        async function loadCourses() {
-            const grid = document.getElementById('courses-grid');
-            const loader = document.getElementById('loader');
-            try {
-                const snap = await getDocs(query(collection(db, "courses")));
-                let html = '';
-                
-                if(snap.empty) {
-                    html = '<div class="col-span-3 text-center text-slate-500 py-10">لا توجد كورسات حالياً</div>';
-                } else {
-                    snap.forEach(doc => {
-                        const data = doc.data();
-                        html += `
-                        <div class="course-card glass rounded-2xl overflow-hidden flex flex-col h-full group relative">
-                            <div class="relative h-56 overflow-hidden">
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10 opacity-80"></div>
-                                <img src="${data.image}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700" onerror="this.src='https://via.placeholder.com/500x300?text=AminTech'">
-                                <span class="absolute top-4 right-4 bg-brand text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg z-20">
-                                    ${data.category || 'Course'}
-                                </span>
-                            </div>
-                            <div class="p-6 flex flex-col flex-1 relative z-20">
-                                <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand transition">${data.title}</h3>
-                                <p class="text-slate-400 text-sm mb-6 flex-1 line-clamp-2">${data.desc || ''}</p>
-                                <button onclick="openPlayer('${data.id}', '${data.title}')" class="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-brand hover:border-brand transition flex items-center justify-center gap-2 group-hover:shadow-lg">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-                                    ابدأ المشاهدة
-                                </button>
-                            </div>
-                        </div>`;
-                    });
-                }
-                grid.innerHTML = html;
-                loader.classList.add('hidden');
-                grid.classList.remove('hidden');
-            } catch(e) { console.error(e); }
+            // 3. أي رابط تاني رجعه زي ما هو
+            return url;
         }
 
         window.openPlayer = async function(courseId, courseTitle) {
             document.getElementById('video-overlay').classList.remove('hidden');
             document.getElementById('course-title-display').innerText = courseTitle;
             const list = document.getElementById('playlist-items');
-            list.innerHTML = '<div class="text-center p-4 text-slate-500">جاري التحميل...</div>';
+            list.innerHTML = '<div class="text-center p-4 text-slate-500"><div class="w-8 h-8 border-2 border-t-purple-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto"></div><p class="mt-2">جاري تحميل الفيديوهات...</p></div>';
 
             try {
-                let q = courseId ? query(collection(db, "videos"), where("courseId", "==", courseId)) : query(collection(db, "videos"));
+                let q = courseId && courseId !== 'all' ? query(collection(db, "videos"), where("courseId", "==", courseId)) : query(collection(db, "videos"));
                 const snap = await getDocs(q);
                 allVideos = [];
-                snap.forEach(doc => allVideos.push(doc.data()));
+                snap.forEach(doc => allVideos.push({id: doc.id, ...doc.data()}));
 
+                document.getElementById('playlist-count').innerText = `${allVideos.length} درس`;
+                
                 if (allVideos.length === 0) {
-                    list.innerHTML = '<div class="text-center p-4 text-slate-500">لا توجد فيديوهات</div>';
+                    list.innerHTML = '<div class="text-center p-4 text-slate-400">لا توجد فيديوهات متاحة لهذه الدورة</div>';
                 } else {
                     list.innerHTML = allVideos.map((vid, idx) => `
-                        <div onclick="playVideo(${idx})" class="playlist-item p-4 mb-2 bg-slate-800/50 rounded-xl cursor-pointer hover:bg-slate-800 flex justify-between items-center border border-white/5">
+                        <div onclick="playVideo(${idx})" class="playlist-item p-3 mb-2 bg-slate-700/30 rounded-xl cursor-pointer hover:bg-slate-700/50 flex justify-between items-center transition">
                             <div class="flex items-center gap-3">
-                                <span class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-xs text-slate-400 font-bold border border-white/10">${idx + 1}</span>
-                                <span class="text-sm font-bold text-slate-200">${vid.title}</span>
+                                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                                    <span class="text-xs font-bold">${idx + 1}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-slate-200 block">${vid.title}</span>
+                                    <span class="text-xs text-slate-400">${vid.duration || '00:00'}</span>
+                                </div>
                             </div>
-                            <span class="text-xs text-slate-500">${vid.duration || ''}</span>
+                            <i class="fas fa-play-circle text-slate-400"></i>
                         </div>`).join('');
-                    if(allVideos.length > 0) playVideo(0);
+                    
+                    if(allVideos.length > 0) {
+                        playVideo(0);
+                        updateProgress(0);
+                    }
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error(e); 
+                list.innerHTML = '<div class="text-center p-4 text-red-400">حدث خطأ في تحميل الفيديوهات</div>';
+            }
         };
 
         window.playVideo = function(idx) {
             const vid = allVideos[idx];
             if(!vid) return;
 
+            // تحديث العناوين
             document.getElementById('video-title-display').innerText = vid.title;
-            document.getElementById('video-desc-display').innerText = vid.desc || '';
+            document.getElementById('video-desc-display').innerText = vid.desc || 'لا يوجد وصف متاح';
+            document.getElementById('video-duration').innerText = vid.duration || '00:00';
+            document.getElementById('video-views').innerHTML = `<i class="fas fa-eye mr-1"></i> ${vid.views || Math.floor(Math.random() * 1000) + 500}`;
 
+            // تلوين العنصر النشط
             document.querySelectorAll('.playlist-item').forEach((el, i) => {
-                if(i === idx) el.classList.add('active'); else el.classList.remove('active');
+                if(i === idx) {
+                    el.classList.add('active');
+                    el.querySelector('i').className = 'fas fa-pause-circle text-purple-500';
+                } else {
+                    el.classList.remove('active');
+                    el.querySelector('i').className = 'fas fa-play-circle text-slate-400';
+                }
             });
 
+            // تشغيل الفيديو باستخدام الدالة المعجزة
             const iframe = document.getElementById('main-frame');
-            // هنا استخدام الدالة اللي بتنظف الرابط
-            iframe.src = getSmartUrl(vid.youtubeId);
+            iframe.src = getSmartUrl(vid.youtubeId || vid.url);
+            
+            // تحديث التقدم
+            updateProgress(idx);
         };
+        
+        function updateProgress(currentIndex) {
+            if (allVideos.length === 0) return;
+            
+            const progressPercent = Math.round(((currentIndex + 1) / allVideos.length) * 100);
+            document.getElementById('course-progress-percent').innerText = `${progressPercent}%`;
+            document.getElementById('course-progress-fill').style.width = `${progressPercent}%`;
+        }
 
         window.closePlayer = function() {
             document.getElementById('video-overlay').classList.add('hidden');
             document.getElementById('main-frame').src = '';
         };
-
+        
+        // دالة تحميل الكورسات
+        async function loadCourses() {
+            const grid = document.getElementById('courses-grid');
+            const loader = document.getElementById('loader');
+            try {
+                const snap = await getDocs(query(collection(db, "courses")));
+                allCourses = [];
+                snap.forEach(doc => {
+                    allCourses.push({id: doc.id, ...doc.data()});
+                });
+                
+                displayCoursesByCategory();
+                loader.classList.add('hidden');
+                grid.classList.remove('hidden');
+            } catch(e) { 
+                console.error(e); 
+                loader.innerHTML = '<p class="text-red-400">حدث خطأ في تحميل الكورسات</p>';
+            }
+        }
+        
+        function displayCoursesByCategory() {
+            const grid = document.getElementById('courses-grid');
+            const filteredCourses = currentCategory === 'all' 
+                ? allCourses 
+                : allCourses.filter(course => course.category === currentCategory);
+            
+            if (filteredCourses.length === 0) {
+                grid.innerHTML = '<div class="col-span-3 text-center py-12"><p class="text-slate-400 text-xl">لا توجد كورسات في هذا القسم حالياً</p></div>';
+                return;
+            }
+            
+            let html = '';
+            filteredCourses.forEach(course => {
+                html += `
+                <div class="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative">
+                    ${course.isNew ? '<div class="course-badge">جديد</div>' : ''}
+                    <div class="relative overflow-hidden h-48">
+                        <img src="${course.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070'}" 
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                             onerror="this.src='https://via.placeholder.com/400x225/1e293b/94a3b8?text=Amin+Tech'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                        <div class="absolute bottom-3 right-3 flex items-center gap-2">
+                            <span class="bg-black/70 px-2 py-1 rounded text-xs">${course.lessons || 12} درس</span>
+                            <span class="bg-black/70 px-2 py-1 rounded text-xs">${course.duration || '10h'}</span>
+                        </div>
+                    </div>
+                    <div class="p-5 flex flex-col flex-1">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-bold text-xl text-white">${course.title}</h3>
+                            <span class="bg-slate-800 px-3 py-1 rounded-full text-xs">${getCategoryName(course.category)}</span>
+                        </div>
+                        <p class="text-slate-400 text-sm mb-4 flex-1">${course.desc || 'دورة تقنية متكاملة تغطي أساسيات الموضوع'}</p>
+                        <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <div class="flex">
+                                    <i class="fas fa-star text-yellow-500 text-sm"></i>
+                                    <i class="fas fa-star text-yellow-500 text-sm"></i>
+                                    <i class="fas fa-star text-yellow-500 text-sm"></i>
+                                    <i class="fas fa-star text-yellow-500 text-sm"></i>
+                                    <i class="fas fa-star text-yellow-500 text-sm"></i>
+                                </div>
+                                <span class="text-slate-400 text-sm">(${course.rating || 5})</span>
+                            </div>
+                            <button onclick="openPlayer('${course.id}', '${course.title}')" class="bg-gradient-to-l from-purple-600 to-emerald-500 px-4 py-2 rounded-lg font-bold hover:opacity-90 transition flex items-center gap-2">
+                                <i class="fas fa-play"></i> ابدأ
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            grid.innerHTML = html;
+        }
+        
+        function getCategoryName(cat) {
+            const categories = {
+                'web': 'تطوير ويب',
+                'mobile': 'موبايل',
+                'ai': 'ذكاء اصطناعي',
+                'design': 'تصميم',
+                'other': 'أخرى'
+            };
+            return categories[cat] || 'عام';
+        }
+        
+        // إرسال الطلب
         document.getElementById('hire-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
             const msg = document.getElementById('form-msg');
-            btn.innerHTML = '⏳ جاري الإرسال...';
+            const originalText = btn.innerText;
+            
+            btn.innerText = "جاري الإرسال...";
+            btn.disabled = true;
+            
             try {
                 await addDoc(collection(db, "service_requests"), {
                     name: document.getElementById('clientName').value,
+                    email: document.getElementById('clientEmail').value,
                     phone: document.getElementById('clientPhone').value,
-                    service: document.getElementById('serviceType').value,
+                    projectType: document.getElementById('projectType').value,
                     details: document.getElementById('projectDetails').value,
                     timestamp: serverTimestamp()
                 });
+                
+                msg.innerText = "تم إرسال طلبك بنجاح! سنتواصل معك خلال 24 ساعة.";
                 msg.classList.remove('hidden');
                 e.target.reset();
-                setTimeout(() => msg.classList.add('hidden'), 3000);
-            } catch(err) {} 
-            finally { btn.innerHTML = 'إرسال الطلب 🚀'; }
+                
+                setTimeout(() => {
+                    msg.classList.add('hidden');
+                }, 5000);
+            } catch(err) {
+                msg.innerText = "حدث خطأ في الإرسال. حاول مرة أخرى.";
+                msg.classList.remove('hidden');
+                msg.classList.add('text-red-400');
+            } 
+            finally { 
+                btn.innerText = originalText; 
+                btn.disabled = false;
+            }
+        });
+        
+        // تحميل آراء العملاء (بيانات وهمية للعرض)
+        function loadTestimonials() {
+            // يمكن استبدال هذا ببيانات حقيقية من Firebase
+            console.log("Testimonials loaded");
+        }
+        
+        // ---[ تحسينات الواجهة والتجربة ]---
+        
+        // تبديل اللغة
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // هنا يمكن إضافة منطق تبديل المحتوى حسب اللغة
+                const lang = this.getAttribute('data-lang');
+                console.log(`تم التبديل إلى اللغة: ${lang}`);
+                
+                // يمكن إضافة مكتبة i18n للترجمة الفعلية
+            });
+        });
+        
+        // تبديل وضع الظلام/الفاتح
+        document.getElementById('dark-mode-toggle').addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (document.body.classList.contains('bg-slate-900')) {
+                document.body.classList.remove('bg-slate-900', 'text-slate-100');
+                document.body.classList.add('bg-gray-50', 'text-gray-900');
+                icon.className = 'fas fa-sun';
+                this.style.background = 'rgba(255, 255, 255, 0.8)';
+                this.style.color = '#1e293b';
+            } else {
+                document.body.classList.remove('bg-gray-50', 'text-gray-900');
+                document.body.classList.add('bg-slate-900', 'text-slate-100');
+                icon.className = 'fas fa-moon';
+                this.style.background = 'rgba(30, 41, 59, 0.8)';
+                this.style.color = 'white';
+            }
+        });
+        
+        // تصفية الكورسات حسب التصنيف
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-gradient-to-l', 'from-purple-600', 'to-emerald-500');
+                    b.classList.add('bg-slate-800');
+                });
+                
+                this.classList.remove('bg-slate-800');
+                this.classList.add('active', 'bg-gradient-to-l', 'from-purple-600', 'to-emerald-500');
+                
+                currentCategory = this.getAttribute('data-category');
+                displayCoursesByCategory();
+            });
+        });
+        
+        // شريط البحث
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const searchBar = document.getElementById('search-bar');
+            searchBar.classList.toggle('hidden');
+            
+            if (!searchBar.classList.contains('hidden')) {
+                document.getElementById('search-input').focus();
+            }
+        });
+        
+        // البحث المباشر
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const resultsDiv = document.getElementById('search-results');
+            
+            if (searchTerm.length < 2) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+            
+            // فلترة الكورسات حسب مصطلح البحث
+            const filtered = allCourses.filter(course => 
+                course.title.toLowerCase().includes(searchTerm) || 
+                (course.desc && course.desc.toLowerCase().includes(searchTerm))
+            );
+            
+            if (filtered.length > 0) {
+                resultsDiv.innerHTML = `
+                    <h4 class="font-bold mb-3">نتائج البحث (${filtered.length})</h4>
+                    ${filtered.map(course => `
+                        <div class="p-3 mb-2 bg-slate-700/30 rounded-lg cursor-pointer hover:bg-slate-700/50" onclick="openPlayer('${course.id}', '${course.title}')">
+                            <p class="font-bold">${course.title}</p>
+                            <p class="text-slate-400 text-sm">${course.desc ? course.desc.substring(0, 80) + '...' : ''}</p>
+                        </div>
+                    `).join('')}
+                `;
+                resultsDiv.classList.remove('hidden');
+            } else {
+                resultsDiv.innerHTML = '<p class="text-slate-400">لا توجد نتائج مطابقة</p>';
+                resultsDiv.classList.remove('hidden');
+            }
+        });
+        
+        // القائمة المتنقلة
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+        
+        // إغلاق القائمة عند النقر على رابط
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.add('hidden');
+            });
+        });
+        
+        // زر تحميل المزيد
+        document.getElementById('load-more').addEventListener('click', function() {
+            // في تطبيق حقيقي، هنا يتم جلب المزيد من البيانات من Firebase
+            this.innerHTML = '<i class="fas fa-check-circle"></i> تم تحميل جميع الكورسات';
+            this.disabled = true;
+            this.classList.remove('bg-slate-800', 'hover:bg-slate-700');
+            this.classList.add('bg-emerald-600');
+        });
+        
+        // وظائف مشغل الفيديو المتقدمة
+        document.getElementById('fullscreen-btn').addEventListener('click', function() {
+            const iframe = document.getElementById('main-frame');
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) {
+                iframe.msRequestFullscreen();
+            }
+        });
+        
+        // Picture-in-Picture (إذا كان المدعوم)
+        document.getElementById('pip-btn').addEventListener('click', function() {
+            const iframe = document.getElementById('main-frame');
+            if (document.pictureInPictureEnabled && iframe.contentDocument) {
+                if (!document.pictureInPictureElement) {
+                    iframe.contentDocument.querySelector('video')?.requestPictureInPicture();
+                } else {
+                    document.exitPictureInPicture();
+                }
+            }
+        });
+        
+        // التنقل السلس
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // تحميل المزيد من المحتوى عند التمرير
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY + window.innerHeight;
+            const pageHeight = document.documentElement.scrollHeight;
+            
+            if (scrollPosition >= pageHeight - 500) {
+                // يمكن تحميل المزيد من المحتوى هنا
+            }
+        });
+        
+        // إظهار زر للعودة للأعلى
+        const backToTop = document.createElement('button');
+        backToTop.innerHTML = '<i class="fas fa-arrow-up"></i>';
+        backToTop.className = 'fixed bottom-24 left-6 w-12 h-12 rounded-full bg-slate-800/80 backdrop-blur border border-white/10 text-white cursor-pointer hidden z-40 hover:bg-slate-700 transition';
+        backToTop.id = 'back-to-top';
+        document.body.appendChild(backToTop);
+        
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 500) {
+                backToTop.classList.remove('hidden');
+            } else {
+                backToTop.classList.add('hidden');
+            }
+        });
+        
+        // تحسينات أداء الصور
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.loading = 'lazy';
+            });
+        });
+        
+        // تهيئة أولية
+        setTimeout(() => {
+            const typewriter = document.querySelector('.typewriter');
+            if (typewriter) {
+                typewriter.style.animation = 'none';
+                setTimeout(() => {
+                    typewriter.style.animation = 'typing 3.5s steps(40, end), blink-caret .75s step-end infinite';
+                }, 10);
+            }
+        }, 1000);
+        
+        // إضافة تأثيرات عند التمرير
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate__animated', 'animate__fadeInUp');
+                }
+            });
+        }, observerOptions);
+        
+        // مراقبة العناصر لإضافة تأثيرات
+        document.querySelectorAll('.glass-card, .stats-card, .testimonial-card').forEach(el => {
+            observer.observe(el);
         });
     </script>
 </body>
 </html>
-
