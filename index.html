@@ -3,141 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amin Tech | منصة التعليم والخدمات</title>
+    <title>Amin Tech | منصة المستقبل</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0f172a',
+                        accent: '#ef4444',
+                        glass: 'rgba(255, 255, 255, 0.1)',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { font-family: 'Cairo', sans-serif; background-color: #020617; color: #fff; overflow-x: hidden; }
         
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 4px; }
 
-        .video-container { position: relative; padding-bottom: 56.25%; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-        .video-placeholder { position: absolute; inset: 0; background: linear-gradient(to bottom right, #0f172a, #1e293b); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 10; }
-        
-        .playlist-item { border-right: 4px solid transparent; transition: all 0.2s; }
-        .playlist-item:hover { background-color: #1e293b; }
-        .playlist-item.active { background-color: #1e293b; border-right-color: #ef4444; }
-        
-        @keyframes blob {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0px, 0px) scale(1); }
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .animate-blob { animation: blob 7s infinite; }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Player Styles */
+        .video-container { position: relative; padding-bottom: 56.25%; background: #000; border-radius: 16px; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid #334155; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        
+        .playlist-item { border-right: 3px solid transparent; transition: all 0.2s; }
+        .playlist-item:hover { background-color: rgba(255,255,255,0.05); }
+        .playlist-item.active { background-color: rgba(239, 68, 68, 0.1); border-right-color: #ef4444; }
+
+        /* Background Blobs */
+        .blob {
+            position: absolute; filter: blur(80px); opacity: 0.4; z-index: -1;
+            animation: float 10s infinite ease-in-out;
+        }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="antialiased selection:bg-red-500 selection:text-white">
 
-    <div id="video-overlay" class="fixed inset-0 bg-slate-900 z-[100] hidden flex flex-col fade-in">
-        <div class="bg-slate-950 text-white p-4 flex justify-between items-center border-b border-slate-800 shadow-lg">
-            <div class="flex items-center gap-3">
-                <button onclick="closePlayer()" class="bg-slate-800 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 text-sm font-bold border border-slate-700">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    خروج
-                </button>
-                <h2 id="course-title-display" class="text-lg font-bold text-slate-200 border-r border-slate-700 pr-4 mr-4">...</h2>
-            </div>
-            <div class="text-blue-500 font-bold text-xl tracking-tighter">Amin<span class="text-white">Tech</span> Player</div>
+    <div class="blob bg-blue-600 w-96 h-96 rounded-full top-0 left-0 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="blob bg-red-600 w-80 h-80 rounded-full bottom-0 right-0 translate-x-1/3 translate-y-1/3 animation-delay-2000"></div>
+
+    <div id="video-overlay" class="fixed inset-0 bg-black/95 z-[100] hidden flex flex-col backdrop-blur-xl transition-all duration-300">
+        <div class="p-4 flex justify-between items-center border-b border-white/10 glass-panel">
+            <button onclick="closePlayer()" class="bg-white/10 hover:bg-red-600 text-white px-5 py-2 rounded-full transition flex items-center gap-2 font-bold text-sm backdrop-blur-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                إغلاق المشغل
+            </button>
+            <div class="text-xl font-black tracking-tighter">Amin<span class="text-red-500">Player</span></div>
         </div>
 
         <div class="flex-1 overflow-hidden flex flex-col lg:flex-row">
-            <div class="flex-1 bg-black flex flex-col relative overflow-y-auto">
-                <div class="p-4 lg:p-8 flex-1 flex flex-col justify-center">
-                    <div class="video-container w-full max-w-5xl mx-auto border border-slate-800">
-                        <div id="player-placeholder" class="video-placeholder">
-                            <h3 class="text-xl font-bold mb-1">اختر درساً للمشاهدة</h3>
-                        </div>
-                        <iframe id="main-frame" class="hidden" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                    </div>
+            <div class="flex-1 flex flex-col relative overflow-y-auto p-4 lg:p-6 justify-center">
+                <div class="video-container w-full max-w-6xl mx-auto mb-6">
+                    <iframe id="main-frame" src="" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
                 </div>
-                <div class="bg-slate-900 text-white p-6 border-t border-slate-800">
-                    <h1 id="video-title-display" class="text-2xl font-bold mb-2 text-blue-400">...</h1>
+                <div class="max-w-6xl mx-auto w-full">
+                    <h1 id="video-title-display" class="text-2xl md:text-3xl font-bold mb-2 text-white">...</h1>
                     <p id="video-desc-display" class="text-slate-400 text-sm leading-relaxed">...</p>
                 </div>
             </div>
-            <div class="w-full lg:w-96 bg-slate-950 border-r border-slate-800 flex flex-col h-full lg:h-auto">
-                <div class="p-4 bg-slate-900 border-b border-slate-800">
-                    <h3 class="text-white font-bold">محتويات الدورة</h3>
+            
+            <div class="w-full lg:w-96 bg-slate-900/50 border-r border-white/5 flex flex-col h-1/3 lg:h-full backdrop-blur-md">
+                <div class="p-4 border-b border-white/5">
+                    <h3 class="text-white font-bold flex items-center gap-2 text-lg">
+                        <span class="w-2 h-6 bg-red-500 rounded-full inline-block"></span>
+                        قائمة الدروس
+                    </h3>
                 </div>
-                <div id="playlist-items" class="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar"></div>
+                <div id="playlist-items" class="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar"></div>
             </div>
         </div>
     </div>
 
-    <nav class="bg-white/90 backdrop-blur shadow-sm sticky top-0 z-40 border-b border-slate-100">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between h-20 items-center">
-                <span class="text-3xl font-black text-blue-900 tracking-tighter">Amin<span class="text-red-600">Tech</span></span>
-                <div class="hidden md:flex gap-8">
-                    <a href="#home" class="font-bold text-slate-600 hover:text-blue-900 transition">الرئيسية</a>
-                    <a href="#courses" class="font-bold text-slate-600 hover:text-blue-900 transition">الكورسات</a>
-                    <a href="#contact" class="bg-red-600 text-white px-6 py-2 rounded-full font-bold hover:bg-red-700 transition shadow-lg">اطلب مشروعك</a>
-                </div>
+    <nav class="glass-panel sticky top-0 z-40 border-b-0">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="#" class="text-3xl font-black tracking-tighter text-white">
+                Amin<span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Tech</span>
+            </a>
+            <div class="hidden md:flex gap-8 items-center">
+                <a href="#home" class="font-bold text-slate-300 hover:text-white transition">الرئيسية</a>
+                <a href="#courses" class="font-bold text-slate-300 hover:text-white transition">الكورسات</a>
+                <a href="#contact" class="bg-gradient-to-r from-red-600 to-orange-600 text-white px-6 py-2.5 rounded-full font-bold hover:shadow-[0_0_20px_rgba(239,68,68,0.5)] transition transform hover:-translate-y-0.5">
+                    ابدا مشروعك
+                </a>
             </div>
         </div>
     </nav>
 
-    <section id="home" class="relative bg-gradient-to-br from-blue-900 to-slate-900 py-32 overflow-hidden">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
-            <h1 class="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
-                نحول أفكارك إلى <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-red-500">واقع رقمي</span>
-            </h1>
-            <p class="text-blue-100 text-xl max-w-2xl mx-auto mb-10">شريكك التقني لتطوير برمجيات الويب، الموبايل، والذكاء الاصطناعي.</p>
-        </div>
-    </section>
-
-    <section id="courses" class="py-24 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-black text-slate-800 mb-4">الكورسات المتاحة</h2>
-                <div class="h-1 w-20 bg-red-500 mx-auto rounded-full"></div>
+    <section id="home" class="relative pt-32 pb-20 px-4 overflow-hidden">
+        <div class="max-w-7xl mx-auto text-center relative z-10">
+            <div class="inline-block px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-sm font-medium text-red-400 mb-6 animate-pulse-slow">
+                🚀 منصة التطوير الأولى للبرمجيات
             </div>
-            <div id="loader" class="text-center py-20"><div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div></div>
-            <div id="courses-grid" class="grid md:grid-cols-3 gap-8 hidden"></div>
+            <h1 class="text-5xl md:text-8xl font-black text-white mb-8 leading-tight tracking-tight">
+                حول أفكارك لواقع <br/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-red-500 animate-gradient">رقمي مذهل</span>
+            </h1>
+            <p class="text-slate-400 text-xl max-w-2xl mx-auto mb-12 leading-relaxed">
+                سواء كنت عايز تتعلم برمجة من الصفر أو محتاج شركة تنفذ مشروعك، إحنا هنا عشانك. ويب، موبايل، وذكاء اصطناعي بأحدث التقنيات.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#courses" class="px-8 py-4 rounded-2xl bg-white text-slate-900 font-black hover:bg-slate-200 transition shadow-xl hover:scale-105">
+                    تصفح الكورسات 📚
+                </a>
+                <a href="#contact" class="px-8 py-4 rounded-2xl bg-white/10 border border-white/10 backdrop-blur-md text-white font-bold hover:bg-white/20 transition hover:scale-105">
+                    اطلب مشروعك 💼
+                </a>
+            </div>
+        </div>
+
+        <div class="max-w-5xl mx-auto mt-24 glass-panel rounded-3xl p-8 grid grid-cols-3 gap-8 text-center relative z-10">
+            <div>
+                <div class="text-4xl font-black text-white mb-1">+50</div>
+                <div class="text-slate-400 text-sm">مشروع مكتمل</div>
+            </div>
+            <div class="border-r border-l border-white/10">
+                <div class="text-4xl font-black text-red-500 mb-1">+1000</div>
+                <div class="text-slate-400 text-sm">طالب ومتدرب</div>
+            </div>
+            <div>
+                <div class="text-4xl font-black text-blue-500 mb-1">100%</div>
+                <div class="text-slate-400 text-sm">رضا عملاء</div>
+            </div>
         </div>
     </section>
 
-    <section id="contact" class="py-24 bg-white relative">
-        <div class="max-w-4xl mx-auto px-4">
-            <div class="bg-slate-900 rounded-3xl p-8 md:p-12 shadow-2xl relative text-center">
-                <h2 class="text-3xl font-black text-white mb-4">اطلب مشروعك الآن</h2>
-                <p class="text-slate-400 mb-8">املأ البيانات بالأسفل وسيتم التواصل معك</p>
-                
-                <form id="hire-form" class="space-y-4 max-w-2xl mx-auto">
+    <section id="courses" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <h2 class="text-4xl font-black text-white mb-2">أحدث الكورسات</h2>
+                    <p class="text-slate-400">تعلم بأحدث الطرق العملية</p>
+                </div>
+                <div class="h-1 w-32 bg-gradient-to-r from-red-600 to-transparent rounded-full"></div>
+            </div>
+
+            <div id="loader" class="text-center py-20">
+                <div class="w-16 h-16 border-4 border-slate-700 border-t-red-500 rounded-full animate-spin mx-auto"></div>
+            </div>
+
+            <div id="courses-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 hidden"></div>
+        </div>
+    </section>
+
+    <section id="contact" class="py-24 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/80"></div>
+        <div class="max-w-4xl mx-auto px-4 relative z-10">
+            <div class="glass-card rounded-3xl p-8 md:p-12 text-center border border-white/10">
+                <h2 class="text-4xl font-black text-white mb-4">جاهز تبدأ مشروعك؟</h2>
+                <p class="text-slate-400 mb-10">املأ البيانات وهنتواصل معاك في أسرع وقت لتنفيذ فكرتك</p>
+
+                <form id="hire-form" class="space-y-4 max-w-2xl mx-auto text-right">
                     <div class="grid md:grid-cols-2 gap-4">
-                        <input type="text" id="clientName" required class="w-full px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-red-500" placeholder="الاسم بالكامل">
-                        <input type="tel" id="clientPhone" required class="w-full px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-red-500" placeholder="رقم الهاتف">
+                        <input type="text" id="clientName" required class="w-full px-6 py-4 rounded-xl bg-slate-800/50 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:bg-slate-800 transition" placeholder="الاسم بالكامل">
+                        <input type="tel" id="clientPhone" required class="w-full px-6 py-4 rounded-xl bg-slate-800/50 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:bg-slate-800 transition" placeholder="رقم الهاتف">
                     </div>
-                    <select id="serviceType" class="w-full px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-red-500 cursor-pointer">
-                        <option value="Web">تطوير ويب</option>
-                        <option value="Mobile">تطوير موبايل</option>
-                        <option value="AI">ذكاء اصطناعي</option>
-                        <option value="Other">أخرى</option>
+                    <select id="serviceType" class="w-full px-6 py-4 rounded-xl bg-slate-800/50 border border-white/10 text-white focus:outline-none focus:border-red-500 focus:bg-slate-800 transition cursor-pointer">
+                        <option class="bg-slate-900" value="Web">🛠 تطوير مواقع ويب</option>
+                        <option class="bg-slate-900" value="Mobile">📱 تطبيقات موبايل (Flutter)</option>
+                        <option class="bg-slate-900" value="AI">🤖 ذكاء اصطناعي</option>
+                        <option class="bg-slate-900" value="Other">✨ أخرى</option>
                     </select>
-                    <textarea id="projectDetails" rows="4" required class="w-full px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 focus:outline-none focus:border-red-500" placeholder="تفاصيل المشروع..."></textarea>
+                    <textarea id="projectDetails" rows="4" required class="w-full px-6 py-4 rounded-xl bg-slate-800/50 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:bg-slate-800 transition" placeholder="احكيلنا عن تفاصيل المشروع..."></textarea>
                     
-                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl transition shadow-lg transform active:scale-95">
-                        إرسال الطلب 🚀
+                    <button type="submit" class="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white font-bold py-4 rounded-xl hover:shadow-lg hover:shadow-red-900/40 transition transform hover:scale-[1.02]">
+                        إرسال الطلب الآن 🚀
                     </button>
                 </form>
 
-                <div id="form-msg" class="hidden mt-6 text-green-400 font-bold bg-green-900/20 py-3 rounded-lg border border-green-900">
-                    ✅ تم استلام طلبك بنجاح!
+                <div id="form-msg" class="hidden mt-6 p-4 rounded-xl bg-green-500/10 border border-green-500/50 text-green-400 font-bold animate-pulse">
+                    ✅ تم استلام طلبك بنجاح! سيتم التواصل معك قريباً.
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-900 text-center">
+    <footer class="bg-black/50 backdrop-blur border-t border-white/5 py-12 text-center">
         <h3 class="text-2xl font-black text-white mb-4">Amin<span class="text-red-600">Tech</span></h3>
-        <p class="text-sm">© 2025 جميع الحقوق محفوظة</p>
+        <div class="flex justify-center gap-6 mb-8 text-slate-400">
+            <a href="#" class="hover:text-white transition">LinkedIn</a>
+            <a href="#" class="hover:text-white transition">GitHub</a>
+            <a href="#" class="hover:text-white transition">Facebook</a>
+        </div>
+        <p class="text-sm text-slate-600">© 2025 جميع الحقوق محفوظة</p>
     </footer>
 
     <script type="module">
@@ -161,82 +248,14 @@
 
         signInAnonymously(auth).then(() => { loadCourses(); });
 
-        // --- دالة تحميل الكورسات ---
-        async function loadCourses() {
-            const grid = document.getElementById('courses-grid');
-            const loader = document.getElementById('loader');
-            try {
-                const q = query(collection(db, "courses"));
-                const snap = await getDocs(q);
-                let html = '';
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    // نمرر الـ id والعنوان لدالة الفتح
-                    html += `
-                    <div class="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden flex flex-col">
-                        <div class="relative h-52 bg-slate-200">
-                            <img src="${data.image}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/500x300?text=Course'">
-                            <span class="absolute top-4 right-4 bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg z-10">${data.category || 'Course'}</span>
-                        </div>
-                        <div class="p-6 flex flex-col flex-1">
-                            <h3 class="text-xl font-black text-slate-800 mb-2">${data.title}</h3>
-                            <p class="text-slate-500 text-sm mb-6 flex-1">${data.desc || ''}</p>
-                            <button onclick="openPlayer('${data.id}', '${data.title}')" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-red-600 transition shadow-lg flex items-center justify-center gap-2">
-                                ابدأ المشاهدة
-                            </button>
-                        </div>
-                    </div>`;
-                });
-                grid.innerHTML = html || '<div class="col-span-3 text-center text-slate-500">لا توجد كورسات.</div>';
-                loader.classList.add('hidden');
-                grid.classList.remove('hidden');
-            } catch (e) { console.error(e); }
-        }
-
-        // --- دالة فتح المشغل (بالفلترة) ---
-        window.openPlayer = async function(courseId, courseTitle) {
-            document.getElementById('video-overlay').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('course-title-display').innerText = courseTitle;
-            const list = document.getElementById('playlist-items');
-            list.innerHTML = '<div class="text-center py-10 text-slate-400">جاري جلب الدروس...</div>';
-
-            try {
-                // الفلترة حسب courseId
-                let q;
-                if(courseId) {
-                    q = query(collection(db, "videos"), where("courseId", "==", courseId));
-                } else {
-                    q = query(collection(db, "videos"));
-                }
-
-                const snap = await getDocs(q);
-                allVideos = [];
-                snap.forEach(doc => allVideos.push(doc.data()));
-
-                if (allVideos.length === 0) {
-                    list.innerHTML = `<div class="text-center py-10 px-4 text-slate-500">لا توجد فيديوهات لهذا الكورس.</div>`;
-                } else {
-                    list.innerHTML = allVideos.map((vid, idx) => `
-                        <div onclick="playVideo(${idx})" class="playlist-item p-4 flex gap-3 cursor-pointer group rounded-lg mx-2 my-1 border border-slate-800/50 hover:bg-slate-800">
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-slate-300 font-bold text-sm line-clamp-2 group-hover:text-white transition">▶ ${vid.title}</h4>
-                                <span class="text-xs text-slate-600 mt-1 block">⏱ ${vid.duration || '00:00'}</span>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            } catch(e) { console.error(e); }
-        };
-
-        // --- الدالة الذكية لاستخراج الروابط ---
+        // --- الجوكر: تشغيل يوتيوب ودرايف ---
         function getEmbedUrl(url) {
             if (!url) return "";
             if (url.includes("youtube.com") || url.includes("youtu.be")) {
                 const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
                 const match = url.match(regExp);
                 const vidId = (match && match[2].length === 11) ? match[2] : null;
-                return vidId ? `https://www.youtube.com/embed/${vidId}?autoplay=1` : "";
+                return vidId ? `https://www.youtube.com/embed/${vidId}?autoplay=1&rel=0` : "";
             }
             if (url.includes("drive.google.com")) {
                 return url.replace(/\/view.*/, "/preview").replace(/\/file\/d\/(.*?)\/.*/, "/file/d/$1/preview");
@@ -244,45 +263,119 @@
             return url;
         }
 
-        // --- دالة تشغيل الفيديو ---
+        // --- تحميل الكورسات بشكل احترافي ---
+        async function loadCourses() {
+            const grid = document.getElementById('courses-grid');
+            const loader = document.getElementById('loader');
+            try {
+                const snap = await getDocs(query(collection(db, "courses")));
+                let html = '';
+                
+                if(snap.empty) {
+                    html = '<div class="col-span-3 text-center text-slate-500 py-10">لا توجد كورسات حالياً</div>';
+                } else {
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        html += `
+                        <div class="glass-card rounded-2xl overflow-hidden group flex flex-col h-full">
+                            <div class="relative h-56 overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10 opacity-60"></div>
+                                <img src="${data.image}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700" onerror="this.src='https://via.placeholder.com/500x300/1e293b/ffffff?text=AminTech'">
+                                <span class="absolute top-4 right-4 bg-red-600/90 backdrop-blur text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg z-20 border border-red-400/30">
+                                    ${data.category || 'Course'}
+                                </span>
+                            </div>
+                            <div class="p-6 flex flex-col flex-1 relative z-20">
+                                <h3 class="text-xl font-bold text-white mb-2 group-hover:text-red-400 transition">${data.title}</h3>
+                                <p class="text-slate-400 text-sm mb-6 flex-1 line-clamp-3">${data.desc || 'تعلم الآن بأفضل جودة...'}</p>
+                                <button onclick="openPlayer('${data.id}', '${data.title}')" class="w-full py-3.5 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-red-600 hover:border-red-600 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                                    ابدأ المشاهدة
+                                </button>
+                            </div>
+                        </div>`;
+                    });
+                }
+                grid.innerHTML = html;
+                loader.classList.add('hidden');
+                grid.classList.remove('hidden');
+            } catch (e) { console.error(e); }
+        }
+
+        // --- مشغل الفيديو ---
+        window.openPlayer = async function(courseId, courseTitle) {
+            const overlay = document.getElementById('video-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.remove('opacity-0'), 10); // Fade in effect
+            document.body.style.overflow = 'hidden';
+            
+            document.getElementById('course-title-display').innerText = courseTitle;
+            const list = document.getElementById('playlist-items');
+            list.innerHTML = '<div class="text-center py-10 text-slate-500 animate-pulse">جاري تحضير المحتوى...</div>';
+
+            try {
+                let q = courseId ? query(collection(db, "videos"), where("courseId", "==", courseId)) : query(collection(db, "videos"));
+                const snap = await getDocs(q);
+                allVideos = [];
+                snap.forEach(doc => allVideos.push(doc.data()));
+
+                if (allVideos.length === 0) {
+                    list.innerHTML = `<div class="text-center py-10 px-4 text-slate-500 bg-white/5 rounded-lg border border-dashed border-white/10 mx-2">لا توجد دروس متاحة حالياً.</div>`;
+                    document.getElementById('main-frame').src = '';
+                } else {
+                    list.innerHTML = allVideos.map((vid, idx) => `
+                        <div onclick="playVideo(${idx})" class="playlist-item p-4 flex gap-4 cursor-pointer group rounded-xl mx-1 bg-white/5 border border-white/5 hover:border-white/20 hover:bg-white/10 transition-all">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 text-xs font-bold border border-slate-700 group-hover:border-red-500 group-hover:text-red-500 transition">
+                                ${idx + 1}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-slate-300 font-bold text-sm line-clamp-1 group-hover:text-white transition">${vid.title}</h4>
+                                <span class="text-xs text-slate-500 mt-1 block flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    ${vid.duration || '00:00'}
+                                </span>
+                            </div>
+                        </div>
+                    `).join('');
+                    playVideo(0);
+                }
+            } catch(e) { console.error(e); }
+        };
+
         window.playVideo = function(idx) {
             const vid = allVideos[idx];
             if(!vid) return;
-            const frame = document.getElementById('main-frame');
-            const placeholder = document.getElementById('player-placeholder');
+
             document.getElementById('video-title-display').innerText = vid.title;
             document.getElementById('video-desc-display').innerText = vid.desc || '';
+            
             document.querySelectorAll('.playlist-item').forEach((el, i) => {
-                if(i === idx) el.classList.add('active'); else el.classList.remove('active');
+                if(i === idx) el.classList.add('active');
+                else el.classList.remove('active');
             });
+
             const finalLink = getEmbedUrl(vid.youtubeId);
-            if(finalLink) {
-                frame.src = finalLink;
-                frame.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-            } else {
-                frame.src = "";
-                frame.classList.add('hidden');
-                placeholder.classList.remove('hidden');
-            }
+            const frame = document.getElementById('main-frame');
+            if(finalLink) frame.src = finalLink;
         };
 
         window.closePlayer = function() {
-            document.getElementById('video-overlay').classList.add('hidden');
+            const overlay = document.getElementById('video-overlay');
+            overlay.classList.add('hidden'); // Hide immediately or add fade out logic
             document.body.style.overflow = 'auto';
             document.getElementById('main-frame').src = '';
         };
 
-        // --- (الجزء المطلوب) منطق إرسال الطلبات ---
+        // --- إرسال الطلبات ---
         document.getElementById('hire-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const msg = document.getElementById('form-msg');
             const btn = e.target.querySelector('button');
             const originalText = btn.innerHTML;
             
-            btn.innerHTML = "جاري الإرسال... ⏳";
+            btn.innerHTML = `<span class="animate-spin inline-block mr-2">⏳</span> جاري الإرسال...`;
             btn.disabled = true;
-            btn.classList.add('opacity-50');
+            btn.classList.add('opacity-70');
             
             try {
                 await addDoc(collection(db, "service_requests"), {
@@ -290,6 +383,7 @@
                     phone: document.getElementById('clientPhone').value,
                     service: document.getElementById('serviceType').value,
                     details: document.getElementById('projectDetails').value,
+                    status: 'new',
                     timestamp: serverTimestamp()
                 });
                 msg.classList.remove('hidden');
@@ -298,14 +392,12 @@
                     msg.classList.add('hidden');
                     btn.innerHTML = originalText;
                     btn.disabled = false;
-                    btn.classList.remove('opacity-50');
-                }, 5000);
+                    btn.classList.remove('opacity-70');
+                }, 4000);
             } catch(err) {
                 console.error(err);
-                alert("حدث خطأ في الإرسال");
-                btn.innerHTML = originalText;
+                btn.innerHTML = "حدث خطأ، حاول مرة أخرى";
                 btn.disabled = false;
-                btn.classList.remove('opacity-50');
             }
         });
     </script>
