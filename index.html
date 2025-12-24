@@ -197,12 +197,12 @@
         <p>© 2025 جميع الحقوق محفوظة</p>
     </footer>
 
-    <script type="module">
+   <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // إعدادات الفايربيز (شغال)
+        // إعدادات الفايربيز
         const firebaseConfig = {
             apiKey: "AIzaSyCI49mQ4v0xRO1RsbiAD23VLZEvzqZI3IE",
             authDomain: "myquizapp-f2686.firebaseapp.com",
@@ -217,24 +217,43 @@
         const db = getFirestore(app);
         let allVideos = [];
 
-        signInAnonymously(auth).then(() => { loadCourses(); }).catch(e => console.error(e));
+        // تسجيل الدخول الصامت (مهم جداً للبيانات)
+        signInAnonymously(auth).then(() => {
+            console.log("Logged in!");
+            loadCourses();
+        }).catch((error) => {
+            console.error("Auth Error:", error);
+        });
 
-        // --- دالة تحويل الروابط (يوتيوب & درايف) ---
+        // ---[ الدالة المصفحة: بتنظف الرابط وتعرف هو يوتيوب ولا درايف ]---
         function getSmartUrl(url) {
             if (!url) return "";
-            if (url.includes("youtu")) {
+            
+            // 1. تنظيف الرابط من المسافات (أهم خطوة)
+            let cleanUrl = url.trim(); 
+
+            // 2. لو يوتيوب
+            if (cleanUrl.includes("youtu")) {
                 const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-                const match = url.match(regExp);
+                const match = cleanUrl.match(regExp);
                 const id = (match && match[2].length === 11) ? match[2] : null;
-                return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0` : url;
+                // استخدام embed مباشر لتجنب مشاكل API
+                return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0` : cleanUrl;
             }
-            if (url.includes("drive.google.com")) {
-                return url.replace("/view", "/preview").replace("usp=sharing", "");
+            
+            // 3. لو جوجل درايف
+            if (cleanUrl.includes("drive.google.com")) {
+                // تحويل أي صيغة لرابط "preview" اللي بيشتغل جوه المواقع
+                // بنشيل /view واي حاجة بعدها ونحط /preview
+                return cleanUrl.replace(/\/view.*/, '/preview').replace(/\/preview.*/, '/preview');
             }
-            return url;
+
+            // 4. لو رابط مباشر (mp4) أو غيره
+            return cleanUrl;
         }
 
-        // --- تحميل الكورسات (مع التصميم الجديد) ---
+        // --- باقي الكود زي ما هو ---
+        
         async function loadCourses() {
             const grid = document.getElementById('courses-grid');
             const loader = document.getElementById('loader');
@@ -273,7 +292,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // --- فتح المشغل ---
         window.openPlayer = async function(courseId, courseTitle) {
             document.getElementById('video-overlay').classList.remove('hidden');
             document.getElementById('course-title-display').innerText = courseTitle;
@@ -302,7 +320,6 @@
             } catch(e) { console.error(e); }
         };
 
-        // --- تشغيل الفيديو ---
         window.playVideo = function(idx) {
             const vid = allVideos[idx];
             if(!vid) return;
@@ -315,6 +332,7 @@
             });
 
             const iframe = document.getElementById('main-frame');
+            // هنا استخدام الدالة اللي بتنظف الرابط
             iframe.src = getSmartUrl(vid.youtubeId);
         };
 
@@ -323,7 +341,6 @@
             document.getElementById('main-frame').src = '';
         };
 
-        // --- إرسال الفورم ---
         document.getElementById('hire-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -346,3 +363,4 @@
     </script>
 </body>
 </html>
+
