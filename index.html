@@ -798,6 +798,7 @@
     let allCourses = [];
     let currentCategory = 'all';
     let currentUser = null;
+    let currentCoursePassword = null;
 
     // تسجيل الدخول المجهول مع حفظ المعرف
     signInAnonymously(auth).then((userCredential) => {
@@ -811,17 +812,22 @@
     function getSmartUrl(url) {
         if (!url) return "";
         
+        // 1. لو يوتيوب (بكل أشكاله)
         if (url.includes("youtu")) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
             const match = url.match(regExp);
             const id = (match && match[2].length === 11) ? match[2] : null;
+            // بنستخدم embed عادي عشان يشتغل على كل الأجهزة
             return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&showinfo=0` : url;
         }
         
+        // 2. لو جوجل درايف (الحل النهائي)
         if (url.includes("drive.google.com")) {
+            // بنحول رابط /view لـ /preview عشان يشتغل embed
             return url.replace("/view", "/preview").replace("usp=sharing", "") + "?autoplay=1";
         }
 
+        // 3. أي رابط تاني رجعه زي ما هو
         return url;
     }
 
@@ -872,8 +878,7 @@
             
             const accessData = accessDoc.data();
             
-            // يمكنك إضافة فحص إضافي هنا (مدة الصلاحية، عدد الأجهزة، إلخ)
-            // مثلاً: التحقق من نفس الجهاز
+            // التحقق من نفس الجهاز
             if (accessData.deviceInfo !== navigator.userAgent) {
                 return false; // جهاز مختلف
             }
@@ -1024,6 +1029,10 @@
         const list = document.getElementById('playlist-items');
         list.innerHTML = '<div class="text-center p-4 text-slate-500">جاري تحميل المحتوى...</div>';
 
+        // حفظ الباسوورد للدورة الحالية
+        const targetCourse = allCourses.find(c => c.id === courseId);
+        currentCoursePassword = targetCourse ? targetCourse.accessCode : null;
+
         try {
             // التحقق من صلاحية الدورة أولاً
             const hasAccess = await hasCourseAccess(courseId);
@@ -1057,6 +1066,7 @@
             allVideos = [];
             snap.forEach(doc => allVideos.push({id: doc.id, ...doc.data()}));
             
+            // ترتيب الفيديوهات أبجدياً
             allVideos.sort((a, b) => a.title.localeCompare(b.title));
             document.getElementById('playlist-count').innerText = `${allVideos.length} درس`;
 
@@ -1106,6 +1116,24 @@
         const vid = allVideos[idx];
         if(!vid) return;
 
+        // التحقق من صلاحية الفيديو (للنظام القديم)
+        const hasOldAccess = localStorage.getItem(`unlocked_${vid.courseId}`);
+        
+        // ---[ نظام الحماية القديم - للتوافق ]---
+        if (vid.isLocked === true && !hasOldAccess) {
+            // نطلب الكود
+            let userCode = prompt("🔒 هذا الدرس للمشتركين فقط.\nأدخل كود التفعيل الخاص بالكورس:");
+            
+            // نقارن الكود اللي كتبه باللي جبناه من الكورس (accessCode)
+            if (userCode === currentCoursePassword) {
+                localStorage.setItem(`unlocked_${vid.courseId}`, 'true');
+                alert("✅ تم تفعيل الكورس بنجاح!");
+            } else {
+                alert("❌ الكود غير صحيح!");
+                return; // وقف التشغيل
+            }
+        }
+
         // تحديث العناوين
         document.getElementById('video-title-display').innerText = vid.title;
         document.getElementById('video-desc-display').innerText = vid.desc || 'لا يوجد وصف متاح';
@@ -1116,7 +1144,7 @@
         document.querySelectorAll('.playlist-item').forEach((el, i) => {
             if(i === idx) {
                 el.classList.add('active');
-                el.querySelector('i').className = 'fas fa-pause-circle text-purple-500';
+                el.querySelector('i').className = vid.isLocked ? 'fas fa-lock text-red-500' : 'fas fa-pause-circle text-purple-500';
             } else {
                 el.classList.remove('active');
                 const isLocked = vid.isLocked === true;
@@ -1124,7 +1152,7 @@
             }
         });
 
-        // تشغيل الفيديو
+        // تشغيل الفيديو باستخدام الدالة المعجزة
         const iframe = document.getElementById('main-frame');
         iframe.src = getSmartUrl(vid.youtubeId || vid.url);
         
@@ -1272,20 +1300,236 @@
         }
     });
     
-    // ... باقي الكود كما هو (التحسينات، البحث، إلخ) ...
+    // تحميل آراء العملاء (بيانات وهمية للعرض)
+    function loadTestimonials() {
+        // يمكن استبدال هذا ببيانات حقيقية من Firebase
+        console.log("Testimonials loaded");
+    }
     
-    // إضافة إدارة المشتركين في لوحة تحكم Firebase:
-    /*
-    - مجلد user_access: {userId, courseId, activated, activatedAt, deviceInfo, ipAddress}
-    - مجلد access_logs: {userId, courseId, accessCode, timestamp, success, ipAddress}
-    - مجلد courses: إضافة الحقول:
-        * accessCode: "رقم سري"
-        * maxDevices: 1 (عدد الأجهزة المسموح)
-        * validUntil: تاريخ انتهاء الصلاحية
-        * isActive: true/false
-    */
+    // ---[ تحسينات الواجهة والتجربة ]---
+    
+    // تبديل اللغة
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // هنا يمكن إضافة منطق تبديل المحتوى حسب اللغة
+            const lang = this.getAttribute('data-lang');
+            console.log(`تم التبديل إلى اللغة: ${lang}`);
+            
+            // يمكن إضافة مكتبة i18n للترجمة الفعلية
+        });
+    });
+    
+    // تبديل وضع الظلام/الفاتح
+    document.getElementById('dark-mode-toggle').addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        if (document.body.classList.contains('bg-slate-900')) {
+            document.body.classList.remove('bg-slate-900', 'text-slate-100');
+            document.body.classList.add('bg-gray-50', 'text-gray-900');
+            icon.className = 'fas fa-sun';
+            this.style.background = 'rgba(255, 255, 255, 0.8)';
+            this.style.color = '#1e293b';
+        } else {
+            document.body.classList.remove('bg-gray-50', 'text-gray-900');
+            document.body.classList.add('bg-slate-900', 'text-slate-100');
+            icon.className = 'fas fa-moon';
+            this.style.background = 'rgba(30, 41, 59, 0.8)';
+            this.style.color = 'white';
+        }
+    });
+    
+    // تصفية الكورسات حسب التصنيف
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.classList.remove('active', 'bg-gradient-to-l', 'from-purple-600', 'to-emerald-500');
+                b.classList.add('bg-slate-800');
+            });
+            
+            this.classList.remove('bg-slate-800');
+            this.classList.add('active', 'bg-gradient-to-l', 'from-purple-600', 'to-emerald-500');
+            
+            currentCategory = this.getAttribute('data-category');
+            displayCoursesByCategory();
+        });
+    });
+    
+    // شريط البحث
+    document.getElementById('search-btn').addEventListener('click', function() {
+        const searchBar = document.getElementById('search-bar');
+        searchBar.classList.toggle('hidden');
+        
+        if (!searchBar.classList.contains('hidden')) {
+            document.getElementById('search-input').focus();
+        }
+    });
+    
+    // البحث المباشر
+    document.getElementById('search-input').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const resultsDiv = document.getElementById('search-results');
+        
+        if (searchTerm.length < 2) {
+            resultsDiv.classList.add('hidden');
+            return;
+        }
+        
+        // فلترة الكورسات حسب مصطلح البحث
+        const filtered = allCourses.filter(course => 
+            course.title.toLowerCase().includes(searchTerm) || 
+            (course.desc && course.desc.toLowerCase().includes(searchTerm))
+        );
+        
+        if (filtered.length > 0) {
+            resultsDiv.innerHTML = `
+                <h4 class="font-bold mb-3">نتائج البحث (${filtered.length})</h4>
+                ${filtered.map(course => `
+                    <div class="p-3 mb-2 bg-slate-700/30 rounded-lg cursor-pointer hover:bg-slate-700/50" onclick="openPlayer('${course.id}', '${course.title}')">
+                        <p class="font-bold">${course.title}</p>
+                        <p class="text-slate-400 text-sm">${course.desc ? course.desc.substring(0, 80) + '...' : ''}</p>
+                    </div>
+                `).join('')}
+            `;
+            resultsDiv.classList.remove('hidden');
+        } else {
+            resultsDiv.innerHTML = '<p class="text-slate-400">لا توجد نتائج مطابقة</p>';
+            resultsDiv.classList.remove('hidden');
+        }
+    });
+    
+    // القائمة المتنقلة
+    document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+        document.getElementById('mobile-menu').classList.toggle('hidden');
+    });
+    
+    // إغلاق القائمة عند النقر على رابط
+    document.querySelectorAll('#mobile-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.add('hidden');
+        });
+    });
+    
+    // زر تحميل المزيد
+    document.getElementById('load-more').addEventListener('click', function() {
+        // في تطبيق حقيقي، هنا يتم جلب المزيد من البيانات من Firebase
+        this.innerHTML = '<i class="fas fa-check-circle"></i> تم تحميل جميع الكورسات';
+        this.disabled = true;
+        this.classList.remove('bg-slate-800', 'hover:bg-slate-700');
+        this.classList.add('bg-emerald-600');
+    });
+    
+    // وظائف مشغل الفيديو المتقدمة
+    document.getElementById('fullscreen-btn').addEventListener('click', function() {
+        const iframe = document.getElementById('main-frame');
+        if (iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+        } else if (iframe.webkitRequestFullscreen) {
+            iframe.webkitRequestFullscreen();
+        } else if (iframe.msRequestFullscreen) {
+            iframe.msRequestFullscreen();
+        }
+    });
+    
+    // Picture-in-Picture (إذا كان المدعوم)
+    document.getElementById('pip-btn').addEventListener('click', function() {
+        const iframe = document.getElementById('main-frame');
+        if (document.pictureInPictureEnabled && iframe.contentDocument) {
+            if (!document.pictureInPictureElement) {
+                iframe.contentDocument.querySelector('video')?.requestPictureInPicture();
+            } else {
+                document.exitPictureInPicture();
+            }
+        }
+    });
+    
+    // التنقل السلس
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // تحميل المزيد من المحتوى عند التمرير
+    window.addEventListener('scroll', function() {
+        const scrollPosition = window.scrollY + window.innerHeight;
+        const pageHeight = document.documentElement.scrollHeight;
+        
+        if (scrollPosition >= pageHeight - 500) {
+            // يمكن تحميل المزيد من المحتوى هنا
+        }
+    });
+    
+    // إظهار زر للعودة للأعلى
+    const backToTop = document.createElement('button');
+    backToTop.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    backToTop.className = 'fixed bottom-24 left-6 w-12 h-12 rounded-full bg-slate-800/80 backdrop-blur border border-white/10 text-white cursor-pointer hidden z-40 hover:bg-slate-700 transition';
+    backToTop.id = 'back-to-top';
+    document.body.appendChild(backToTop);
+    
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 500) {
+            backToTop.classList.remove('hidden');
+        } else {
+            backToTop.classList.add('hidden');
+        }
+    });
+    
+    // تحسينات أداء الصور
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+            img.loading = 'lazy';
+        });
+    });
+    
+    // تهيئة أولية
+    setTimeout(() => {
+        const typewriter = document.querySelector('.typewriter');
+        if (typewriter) {
+            typewriter.style.animation = 'none';
+            setTimeout(() => {
+                typewriter.style.animation = 'typing 3.5s steps(40, end), blink-caret .75s step-end infinite';
+            }, 10);
+        }
+    }, 1000);
+    
+    // إضافة تأثيرات عند التمرير
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate__animated', 'animate__fadeInUp');
+            }
+        });
+    }, observerOptions);
+    
+    // مراقبة العناصر لإضافة تأثيرات
+    document.querySelectorAll('.glass-card, .stats-card, .testimonial-card').forEach(el => {
+        observer.observe(el);
+    });
 </script>
 </body>
 </html>
+
 
 
