@@ -744,7 +744,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCI49mQ4v0xRO1RsbiAD23VLZEvzqZI3IE",
@@ -764,185 +764,91 @@
     let currentUser = null;
     let currentCoursePassword = null;
 
-    // ---[ إصلاح: تسجيل دخول مجهول آمن ]---
-    async function initAuth() {
-        try {
-            // تحقق إذا كان فيه مستخدم مسجل بالفعل
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    console.log("✅ مستخدم موجود:", user.uid);
-                } else {
-                    // سجل دخول مجهول جديد
-                    const userCredential = await signInAnonymously(auth);
-                    currentUser = userCredential.user;
-                    console.log("🆕 تم تسجيل مستخدم جديد:", currentUser.uid);
-                    
-                    // حفظ معلومات المستخدم في Firestore
-                    try {
-                        await setDoc(doc(db, "users", currentUser.uid), {
-                            uid: currentUser.uid,
-                            createdAt: serverTimestamp(),
-                            userAgent: navigator.userAgent,
-                            lastActive: serverTimestamp(),
-                            ipAddress: await getIPAddress()
-                        });
-                    } catch (error) {
-                        console.log("⚠️ لا يمكن حفظ المستخدم (قد يكون بسبب قواعد الأمان)");
-                    }
-                }
-                loadCourses();
-                loadTestimonials();
-            });
-        } catch (error) {
-            console.error("❌ خطأ في المصادقة:", error);
-            // استمر حتى مع خطأ المصادقة
-            loadCourses();
-            loadTestimonials();
-        }
-    }
-
-    // بدء المصادقة
-    initAuth();
+    // تسجيل الدخول المجهول مع حفظ المعرف
+    signInAnonymously(auth).then((userCredential) => {
+        currentUser = userCredential.user;
+        console.log("User ID:", currentUser.uid);
+        loadCourses();
+        loadTestimonials();
+    }).catch(e => console.error("Auth Error:", e));
 
     // ---[ الدالة المعجزة للفصل بين يوتيوب ودرايف ]---
     function getSmartUrl(url) {
         if (!url) return "";
         
+        // 1. لو يوتيوب (بكل أشكاله)
         if (url.includes("youtu")) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
             const match = url.match(regExp);
             const id = (match && match[2].length === 11) ? match[2] : null;
+            // بنستخدم embed عادي عشان يشتغل على كل الأجهزة
             return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&showinfo=0` : url;
         }
         
+        // 2. لو جوجل درايف (الحل النهائي)
         if (url.includes("drive.google.com")) {
+            // بنحول رابط /view لـ /preview عشان يشتغل embed
             return url.replace("/view", "/preview").replace("usp=sharing", "") + "?autoplay=1";
         }
 
+        // 3. أي رابط تاني رجعه زي ما هو
         return url;
     }
 
     // ---[ نظام آمن للتفعيل ]---
     async function checkCourseAccess(courseId, accessCode) {
-        if (!currentUser) {
-            // حاول إعادة المصادقة
-            try {
-                const userCredential = await signInAnonymously(auth);
-                currentUser = userCredential.user;
-                console.log("🔄 أعيد تسجيل المستخدم:", currentUser.uid);
-            } catch (error) {
-                console.error("❌ لا يمكن تسجيل الدخول:", error);
-                return false;
-            }
-        }
+        if (!currentUser) return false;
         
         try {
             // 1. التحقق من صحة الكود
             const courseDoc = await getDoc(doc(db, "courses", courseId));
-            if (!courseDoc.exists()) {
-                console.log("❌ الكورس غير موجود:", courseId);
-                return false;
-            }
+            if (!courseDoc.exists()) return false;
             
             const courseData = courseDoc.data();
+            if (courseData.accessCode !== accessCode) return false;
             
-            // التحقق من الكود
-            if (courseData.accessCode !== accessCode) {
-                console.log("❌ الكود غير صحيح:", accessCode, "المتوقع:", courseData.accessCode);
-                
-                // تسجيل محاولة فاشلة
-                try {
-                    const logId = `failed_${currentUser.uid}_${Date.now()}`;
-                    await setDoc(doc(db, "access_logs", logId), {
-                        userId: currentUser.uid,
-                        courseId: courseId,
-                        accessCode: accessCode,
-                        timestamp: serverTimestamp(),
-                        success: false,
-                        userAgent: navigator.userAgent,
-                        ipAddress: await getIPAddress(),
-                        logId: logId,
-                        reason: "كود غير صحيح"
-                    });
-                } catch (logError) {
-                    console.log("⚠️ لا يمكن تسجيل محاولة فاشلة");
-                }
-                
-                return false;
-            }
+            // 2. تسجيل محاولة الدخول
+            await setDoc(doc(db, "access_logs", `${currentUser.uid}_${courseId}_${Date.now()}`), {
+                userId: currentUser.uid,
+                courseId: courseId,
+                accessCode: accessCode,
+                timestamp: serverTimestamp(),
+                success: true
+            });
             
-            // 2. تسجيل محاولة الدخول الناجحة
-            const logId = `success_${currentUser.uid}_${Date.now()}`;
-            try {
-                await setDoc(doc(db, "access_logs", logId), {
-                    userId: currentUser.uid,
-                    courseId: courseId,
-                    accessCode: accessCode,
-                    timestamp: serverTimestamp(),
-                    success: true,
-                    userAgent: navigator.userAgent,
-                    ipAddress: await getIPAddress(),
-                    logId: logId
-                });
-                
-                console.log("📝 تم تسجيل دخول في access_logs:", logId);
-            } catch (logError) {
-                console.log("⚠️ لا يمكن تسجيل محاولة ناجحة");
-            }
-            
-            // 3. حفظ التفعيل للدورة في Firestore
-            try {
-                await setDoc(doc(db, "user_access", `${currentUser.uid}_${courseId}`), {
-                    userId: currentUser.uid,
-                    courseId: courseId,
-                    activated: true,
-                    activatedAt: serverTimestamp(),
-                    deviceInfo: navigator.userAgent,
-                    accessCodeUsed: accessCode,
-                    logId: logId,
-                    ipAddress: await getIPAddress()
-                });
-                
-                console.log("✅ تم حفظ تفعيل المستخدم");
-            } catch (accessError) {
-                console.log("⚠️ لا يمكن حفظ تفعيل المستخدم");
-            }
+            // 3. حفظ التفعيل للدورة في Firestore (ليس localStorage)
+            await setDoc(doc(db, "user_access", `${currentUser.uid}_${courseId}`), {
+                userId: currentUser.uid,
+                courseId: courseId,
+                activated: true,
+                activatedAt: serverTimestamp(),
+                deviceInfo: navigator.userAgent,
+                ipAddress: await getIPAddress()
+            });
             
             return true;
         } catch (error) {
-            console.error("❌ خطأ في التحقق:", error);
+            console.error("Error checking access:", error);
             return false;
         }
     }
 
     async function hasCourseAccess(courseId) {
-        if (!currentUser) {
-            console.log("⚠️ لا يوجد مستخدم للتحقق");
-            return false;
-        }
+        if (!currentUser) return false;
         
         try {
             const accessDoc = await getDoc(doc(db, "user_access", `${currentUser.uid}_${courseId}`));
-            if (!accessDoc.exists()) {
-                console.log("⚠️ لا يوجد تفعيل للمستخدم:", currentUser.uid, "في الكورس:", courseId);
-                return false;
-            }
+            if (!accessDoc.exists()) return false;
             
             const accessData = accessDoc.data();
             
-            // التحقق من نفس الجهاز (اختياري)
-            if (accessData.deviceInfo && accessData.deviceInfo !== navigator.userAgent) {
-                console.log("⚠️ جهاز مختلف:", navigator.userAgent);
-                console.log("⚙️ الجهاز المسجل:", accessData.deviceInfo);
-                // يمكنك إما رفض أو السماح
-                // return false; // لرفض الأجهزة المختلفة
+            // التحقق من نفس الجهاز
+            if (accessData.deviceInfo !== navigator.userAgent) {
+                return false; // جهاز مختلف
             }
             
-            console.log("✅ المستخدم لديه صلاحية للكورس:", courseId);
             return accessData.activated === true;
         } catch (error) {
-            console.error("❌ خطأ في التحقق من الصلاحية:", error);
             return false;
         }
     }
@@ -957,22 +863,16 @@
         }
     }
 
-    // ---[ واجهة تفعيل محسنة - تظهر بدلاً من prompt ]---
+    // ---[ واجهة تفعيل محسنة ]---
     function showAccessModal(courseId, courseTitle) {
-        // أولاً تحقق إذا كان في modal مفتوح بالفعل
-        const existingModal = document.getElementById('access-modal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-        
         const modalHTML = `
-            <div id="access-modal" class="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4">
-                <div class="bg-slate-800 rounded-2xl p-6 max-w-md w-full animate__animated animate__fadeIn">
+            <div id="access-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+                <div class="bg-slate-800 rounded-2xl p-6 max-w-md w-full">
                     <div class="text-center mb-6">
                         <div class="w-16 h-16 bg-gradient-to-r from-red-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <i class="fas fa-lock text-white text-2xl"></i>
                         </div>
-                        <h3 class="text-xl font-bold text-white mb-2">${courseTitle}</h3>
+                        <h3 class="text-xl font-bold text-white mb-2">تفعيل الدورة: ${courseTitle}</h3>
                         <p class="text-slate-400 mb-4">هذه الدورة للمشتركين المميزين فقط</p>
                     </div>
                     
@@ -981,8 +881,8 @@
                             <label class="block text-slate-300 mb-2">كود التفعيل</label>
                             <input type="password" id="access-code-input" 
                                    class="w-full p-3 rounded-xl bg-slate-700 border border-slate-600 text-white text-center text-lg tracking-widest" 
-                                   placeholder="أدخل الكود هنا"
-                                   autocomplete="off">
+                                   placeholder="****"
+                                   maxlength="8">
                         </div>
                         
                         <div class="flex gap-2">
@@ -991,14 +891,13 @@
                                 إلغاء
                             </button>
                             <button onclick="submitAccessCode('${courseId}')" 
-                                    id="submit-access-btn"
                                     class="flex-1 bg-gradient-to-r from-purple-600 to-red-600 py-3 rounded-xl font-bold hover:opacity-90 transition">
                                 تفعيل
                             </button>
                         </div>
                         
                         <p class="text-xs text-slate-500 text-center mt-4">
-                            ⚠️ الكود خاص بجهاز واحد فقط
+                            ⚠️ الكود خاص بجهاز واحد فقط وسيتم تسجيله في قاعدة البيانات
                         </p>
                     </div>
                 </div>
@@ -1012,30 +911,17 @@
         // التركيز على حقل الإدخال
         setTimeout(() => {
             const input = document.getElementById('access-code-input');
-            if (input) {
-                input.focus();
-                // عند الضغط على Enter
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        submitAccessCode(courseId);
-                    }
-                });
-            }
+            if (input) input.focus();
         }, 100);
     }
 
     window.hideAccessModal = function() {
         const modal = document.getElementById('access-modal');
-        if (modal) {
-            modal.classList.add('animate__fadeOut');
-            setTimeout(() => modal.remove(), 300);
-        }
+        if (modal) modal.remove();
     }
 
     window.submitAccessCode = async function(courseId) {
         const input = document.getElementById('access-code-input');
-        if (!input) return;
-        
         const code = input.value.trim();
         
         if (!code) {
@@ -1045,14 +931,13 @@
         
         // إظهار تحميل
         const modal = document.getElementById('access-modal');
-        const submitBtn = document.getElementById('submit-access-btn');
-        if (submitBtn) {
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-            submitBtn.disabled = true;
+        if (modal) {
+            modal.querySelector('button[onclick*="submitAccessCode"]').innerHTML = 
+                '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+            modal.querySelector('button[onclick*="submitAccessCode"]').disabled = true;
         }
         
         try {
-            console.log("🔍 جاري التحقق من الكود:", code, "للكورس:", courseId);
             const hasAccess = await checkCourseAccess(courseId, code);
             
             if (hasAccess) {
@@ -1066,19 +951,15 @@
                     }
                 }, 1500);
             } else {
-                showMessage('error', '❌ كود التفعيل غير صحيح');
-                if (submitBtn) {
-                    submitBtn.innerHTML = 'تفعيل';
-                    submitBtn.disabled = false;
+                showMessage('error', '❌ كود التفعيل غير صحيح أو منتهي الصلاحية');
+                if (modal) {
+                    modal.querySelector('button[onclick*="submitAccessCode"]').innerHTML = 'تفعيل';
+                    modal.querySelector('button[onclick*="submitAccessCode"]').disabled = false;
                 }
             }
         } catch (error) {
             showMessage('error', 'حدث خطأ في التحقق. حاول مرة أخرى.');
             console.error(error);
-            if (submitBtn) {
-                submitBtn.innerHTML = 'تفعيل';
-                submitBtn.disabled = false;
-            }
         }
     }
 
@@ -1089,7 +970,7 @@
         
         const message = document.createElement('div');
         message.id = 'access-message';
-        message.className = `fixed top-4 right-4 p-4 rounded-xl z-[70] animate__animated animate__fadeInDown ${type === 'success' ? 'bg-green-900/90 border border-green-700' : 'bg-red-900/90 border border-red-700'}`;
+        message.className = `fixed top-4 right-4 p-4 rounded-xl z-50 animate__animated animate__fadeInDown ${type === 'success' ? 'bg-green-900/90 border border-green-700' : 'bg-red-900/90 border border-red-700'}`;
         message.innerHTML = `
             <div class="flex items-center gap-3">
                 <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} text-xl"></i>
@@ -1122,14 +1003,6 @@
             const courseDoc = await getDoc(doc(db, "courses", courseId));
             const courseData = courseDoc.exists() ? courseDoc.data() : {};
             
-            console.log("🔍 تحقق من الدورة:", {
-                courseId,
-                courseTitle,
-                hasAccess,
-                hasAccessCode: !!courseData.accessCode,
-                isActive: courseData.isActive !== false
-            });
-            
             // إذا كانت الدورة تحتاج كود وليس للمستخدم صلاحية
             if (courseData.accessCode && !hasAccess) {
                 list.innerHTML = `
@@ -1155,15 +1028,7 @@
             let q = courseId && courseId !== 'all' ? query(collection(db, "videos"), where("courseId", "==", courseId)) : query(collection(db, "videos"));
             const snap = await getDocs(q);
             allVideos = [];
-            snap.forEach(doc => {
-                const data = doc.data();
-                allVideos.push({
-                    id: doc.id,
-                    ...data,
-                    // تحديد إذا كان الفيديو مقفل بناءً على صلاحية المستخدم
-                    isActuallyLocked: data.isLocked === true && (!hasAccess && courseData.accessCode)
-                });
-            });
+            snap.forEach(doc => allVideos.push({id: doc.id, ...doc.data()}));
             
             // ترتيب الفيديوهات أبجدياً
             allVideos.sort((a, b) => a.title.localeCompare(b.title));
@@ -1173,7 +1038,7 @@
                 list.innerHTML = '<div class="text-center p-4 text-slate-400">لا توجد فيديوهات متاحة لهذه الدورة</div>';
             } else {
                 list.innerHTML = allVideos.map((vid, idx) => {
-                    const isLocked = vid.isActuallyLocked;
+                    const isLocked = vid.isLocked === true && (!hasAccess && courseData.accessCode);
                     const icon = isLocked ? 
                         '<i class="fas fa-lock text-red-500"></i>' : 
                         '<i class="fas fa-play-circle text-slate-400"></i>';
@@ -1198,30 +1063,38 @@
                 }).join('');
                 
                 // تشغيل أول فيديو غير مقفل
-                const firstUnlocked = allVideos.findIndex(vid => !vid.isActuallyLocked);
+                const firstUnlocked = allVideos.findIndex(vid => !(vid.isLocked && (!hasAccess && courseData.accessCode)));
                 if (firstUnlocked !== -1) {
                     playVideo(firstUnlocked);
                     updateProgress(firstUnlocked);
                 }
             }
         } catch(e) { 
-            console.error("❌ خطأ في تحميل الفيديوهات:", e); 
+            console.error(e); 
             list.innerHTML = '<div class="text-center p-4 text-red-400">حدث خطأ في تحميل الفيديوهات</div>';
         }
     };
 
-    // ---[ دالة التشغيل المعدلة - بدون prompt ]---
+    // ---[ دالة التشغيل المعدلة ]---
     window.playVideo = function(idx) {
         const vid = allVideos[idx];
         if(!vid) return;
 
-        // إذا كان الفيديو مقفل، اظهر modal التفعيل
-        if (vid.isActuallyLocked) {
-            // ابحث عن الكورس الحالي
-            const currentCourse = allCourses.find(c => c.id === vid.courseId);
-            if (currentCourse) {
-                showAccessModal(vid.courseId, currentCourse.title);
-                return; // توقف عن التشغيل
+        // التحقق من صلاحية الفيديو (للنظام القديم)
+        const hasOldAccess = localStorage.getItem(`unlocked_${vid.courseId}`);
+        
+        // ---[ نظام الحماية القديم - للتوافق ]---
+        if (vid.isLocked === true && !hasOldAccess) {
+            // نطلب الكود
+            let userCode = prompt("🔒 هذا الدرس للمشتركين فقط.\nأدخل كود التفعيل الخاص بالكورس:");
+            
+            // نقارن الكود اللي كتبه باللي جبناه من الكورس (accessCode)
+            if (userCode === currentCoursePassword) {
+                localStorage.setItem(`unlocked_${vid.courseId}`, 'true');
+                alert("✅ تم تفعيل الكورس بنجاح!");
+            } else {
+                alert("❌ الكود غير صحيح!");
+                return; // وقف التشغيل
             }
         }
 
@@ -1235,10 +1108,11 @@
         document.querySelectorAll('.playlist-item').forEach((el, i) => {
             if(i === idx) {
                 el.classList.add('active');
-                el.querySelector('i').className = vid.isActuallyLocked ? 'fas fa-lock text-red-500' : 'fas fa-pause-circle text-purple-500';
+                el.querySelector('i').className = vid.isLocked ? 'fas fa-lock text-red-500' : 'fas fa-pause-circle text-purple-500';
             } else {
                 el.classList.remove('active');
-                el.querySelector('i').className = vid.isActuallyLocked ? 'fas fa-lock text-red-500' : 'fas fa-play-circle text-slate-400';
+                const isLocked = vid.isLocked === true;
+                el.querySelector('i').className = isLocked ? 'fas fa-lock text-red-500' : 'fas fa-play-circle text-slate-400';
             }
         });
 
@@ -1274,12 +1148,11 @@
                 allCourses.push({id: doc.id, ...doc.data()});
             });
             
-            console.log(`✅ تم تحميل ${allCourses.length} كورس`);
             displayCoursesByCategory();
             loader.classList.add('hidden');
             grid.classList.remove('hidden');
         } catch(e) { 
-            console.error("❌ خطأ في تحميل الكورسات:", e); 
+            console.error(e); 
             loader.innerHTML = '<p class="text-red-400">حدث خطأ في تحميل الكورسات</p>';
         }
     }
@@ -1370,8 +1243,7 @@
                 phone: document.getElementById('clientPhone').value,
                 projectType: document.getElementById('projectType').value,
                 details: document.getElementById('projectDetails').value,
-                timestamp: serverTimestamp(),
-                ipAddress: await getIPAddress()
+                timestamp: serverTimestamp()
             });
             
             msg.innerText = "تم إرسال طلبك بنجاح! سنتواصل معك خلال 24 ساعة.";
@@ -1392,8 +1264,9 @@
         }
     });
     
-    // تحميل آراء العملاء
+    // تحميل آراء العملاء (بيانات وهمية للعرض)
     function loadTestimonials() {
+        // يمكن استبدال هذا ببيانات حقيقية من Firebase
         console.log("Testimonials loaded");
     }
     
@@ -1405,8 +1278,11 @@
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
+            // هنا يمكن إضافة منطق تبديل المحتوى حسب اللغة
             const lang = this.getAttribute('data-lang');
             console.log(`تم التبديل إلى اللغة: ${lang}`);
+            
+            // يمكن إضافة مكتبة i18n للترجمة الفعلية
         });
     });
     
@@ -1501,6 +1377,7 @@
     
     // زر تحميل المزيد
     document.getElementById('load-more').addEventListener('click', function() {
+        // في تطبيق حقيقي، هنا يتم جلب المزيد من البيانات من Firebase
         this.innerHTML = '<i class="fas fa-check-circle"></i> تم تحميل جميع الكورسات';
         this.disabled = true;
         this.classList.remove('bg-slate-800', 'hover:bg-slate-700');
@@ -1519,7 +1396,7 @@
         }
     });
     
-    // Picture-in-Picture
+    // Picture-in-Picture (إذا كان المدعوم)
     document.getElementById('pip-btn').addEventListener('click', function() {
         const iframe = document.getElementById('main-frame');
         if (document.pictureInPictureEnabled && iframe.contentDocument) {
@@ -1614,7 +1491,9 @@
     document.querySelectorAll('.glass-card, .stats-card, .testimonial-card').forEach(el => {
         observer.observe(el);
     });
-</script>                                                                   
+</script>
+    
 </body>
 </html>
+
 
