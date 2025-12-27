@@ -72,9 +72,20 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
         }
 
+        .playlist-item {
+            transition: all 0.3s;
+        }
         .playlist-item.active { 
             background: linear-gradient(90deg, rgba(139, 92, 246, 0.2), rgba(16, 185, 129, 0.1)); 
             border-right: 4px solid var(--primary); 
+        }
+        .playlist-item.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(255, 50, 50, 0.05);
+        }
+        .playlist-item.locked:hover {
+            background: rgba(255, 50, 50, 0.1);
         }
         
         .floating {
@@ -426,6 +437,30 @@
         </div>
     </div>
 
+    <div id="unlock-modal" class="auth-modal hidden">
+        <div class="bg-slate-800 rounded-2xl max-w-sm w-full overflow-hidden glass-card p-6 text-center">
+            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-lock text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">تفعيل الكورس</h3>
+            <p class="text-slate-400 text-sm mb-6">هذا المحتوى مقفول. المشاهدة المجانية متاحة لأول فيديوهين فقط. يرجى إدخال كوبون التفعيل.</p>
+            
+            <input id="unlock-coupon" type="text" placeholder="أدخل كود الكوبون (مثال: CODE-111)" class="w-full p-3 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4 text-center uppercase">
+            
+            <p id="unlock-error" class="text-red-400 text-sm mb-4 hidden"></p>
+            <p id="unlock-success" class="text-green-400 text-sm mb-4 hidden">تم تفعيل الكورس بنجاح!</p>
+            
+            <div class="flex gap-3">
+                <button id="unlock-submit-btn" class="flex-1 bg-gradient-to-l from-purple-600 to-emerald-500 py-3 rounded-xl font-bold hover:opacity-90 transition">
+                    تفعيل
+                </button>
+                <button id="unlock-cancel-btn" class="flex-1 bg-slate-700 py-3 rounded-xl font-bold hover:bg-slate-600 transition">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="auth-modal" class="auth-modal hidden">
         <div class="bg-slate-800 rounded-2xl max-w-md w-full overflow-hidden glass-card">
             <div class="auth-tabs">
@@ -448,13 +483,6 @@
                         <span class="password-toggle" id="toggle-login-password">
                             <i class="fas fa-eye"></i>
                         </span>
-                        <div class="flex justify-between mt-2">
-                            <label class="flex items-center gap-2 text-sm text-slate-400">
-                                <input type="checkbox" id="remember-me">
-                                تذكرني
-                            </label>
-                            <a href="#" class="text-sm text-purple-400 hover:text-purple-300">نسيت كلمة المرور؟</a>
-                        </div>
                     </div>
                     
                     <button type="submit" class="w-full bg-gradient-to-l from-purple-600 to-emerald-500 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition flex items-center justify-center gap-2">
@@ -1010,7 +1038,7 @@
             createUserWithEmailAndPassword, 
             signInWithEmailAndPassword, 
             signInWithPopup, 
-            signInAnonymously, // <-- تمت الإضافة هنا للحل السحري
+            signInAnonymously,
             GoogleAuthProvider, 
             GithubAuthProvider, 
             signOut, 
@@ -1028,7 +1056,9 @@
             serverTimestamp,
             doc,
             setDoc,
-            getDoc
+            getDoc,
+            updateDoc,
+            arrayUnion
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1051,31 +1081,46 @@
         let currentCategory = 'all';
         let currentUser = null;
         let userData = null;
+        let currentCourseId = null;
 
-        // --- Logic: Handle Auth State & "Ghost" Visitor Login ---
+        // --- Helper Function: Generate Test Coupons (Run Once) ---
+        async function generateTestCoupons() {
+            // Check if coupons exist first
+            const snap = await getDoc(doc(db, "coupons", "CODE-111"));
+            if (snap.exists()) return; // already created
+
+            console.log("Generating Test Coupons...");
+            const testCoupons = ["CODE-111", "CODE-222", "CODE-333"];
+            for (const code of testCoupons) {
+                await setDoc(doc(db, "coupons", code), {
+                    isUsed: false,
+                    courseId: "all_access", // OR specific ID
+                    createdAt: serverTimestamp()
+                });
+            }
+            console.log("Test Coupons Created! Try CODE-111");
+        }
+        
+        // Execute generation once (safe to keep)
+        generateTestCoupons();
+
+        // --- Auth & Logic ---
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             
             if (user) {
-                // User is authenticated (either anonymously or real)
                 if (user.isAnonymous) {
-                    // Visitor Mode: Hide profile, show login button
                     hideUserProfile();
                     loadCourses();
                     loadTestimonials();
                 } else {
-                    // Real User: Show profile
                     await loadUserData(user.uid);
                     showUserProfile(user);
                     loadCourses();
                     loadTestimonials();
                 }
             } else {
-                // No user at all? Log in anonymously immediately!
-                // This mimics the old code's behavior to ensure data loads.
-                signInAnonymously(auth).catch((error) => {
-                    console.error("Anonymous auth failed", error);
-                });
+                signInAnonymously(auth).catch((error) => console.error(error));
             }
         });
 
@@ -1090,11 +1135,8 @@
                         email: currentUser.email,
                         photoURL: currentUser.photoURL || "",
                         createdAt: serverTimestamp(),
-                        lastLogin: serverTimestamp(),
-                        enrolledCourses: [],
-                        progress: {}
+                        purchasedCourses: []
                     };
-                    // Only save to DB if it's NOT anonymous
                     if (!currentUser.isAnonymous) {
                         await setDoc(doc(db, "users", userId), userData);
                     }
@@ -1104,6 +1146,7 @@
             }
         }
 
+        // --- UI Setup ---
         function showUserProfile(user) {
             document.getElementById('login-btn').classList.add('hidden');
             document.getElementById('user-profile').classList.remove('hidden');
@@ -1245,9 +1288,7 @@
                     lastName,
                     email,
                     createdAt: serverTimestamp(),
-                    lastLogin: serverTimestamp(),
-                    enrolledCourses: [],
-                    progress: {}
+                    purchasedCourses: []
                 });
                 
                 successElement.textContent = "تم إنشاء حسابك بنجاح!";
@@ -1372,22 +1413,82 @@
             return url;
         }
 
-        window.openPlayer = async function(courseId, courseTitle) {
-            // Here, we check if the user is ANONYMOUS. If so, we force login.
-            // If they are a real user (not anonymous), we let them play.
+        // --- COUPON & UNLOCK LOGIC ---
+        let pendingVideoIndex = null;
+
+        document.getElementById('unlock-cancel-btn').addEventListener('click', () => {
+            document.getElementById('unlock-modal').classList.add('hidden');
+            pendingVideoIndex = null;
+        });
+
+        document.getElementById('unlock-submit-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('unlock-submit-btn');
+            const errorMsg = document.getElementById('unlock-error');
+            const successMsg = document.getElementById('unlock-success');
+            const codeInput = document.getElementById('unlock-coupon').value.trim().toUpperCase();
+
+            // 1. Force Login if Anonymous
             if (!currentUser || currentUser.isAnonymous) {
-                const loginBtn = document.getElementById('login-btn');
-                if(loginBtn) {
-                    loginBtn.classList.add('animate__animated', 'animate__pulse');
-                    setTimeout(() => {
-                        loginBtn.classList.remove('animate__animated', 'animate__pulse');
-                    }, 1000);
-                }
-                
+                document.getElementById('unlock-modal').classList.add('hidden');
                 document.getElementById('auth-modal').classList.remove('hidden');
                 switchToLoginTab();
                 return;
             }
+
+            btn.innerText = "جاري التحقق...";
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+
+            try {
+                // 2. Check Coupon in DB
+                const couponRef = doc(db, "coupons", codeInput);
+                const couponSnap = await getDoc(couponRef);
+
+                if (!couponSnap.exists()) {
+                    throw new Error("كود الكوبون غير صحيح");
+                }
+
+                const couponData = couponSnap.data();
+                if (couponData.isUsed) {
+                    throw new Error("تم استخدام هذا الكوبون مسبقاً");
+                }
+
+                // 3. Valid Coupon -> Mark Used & Grant Access
+                await updateDoc(couponRef, { isUsed: true, usedBy: currentUser.uid, usedAt: serverTimestamp() });
+                
+                // Add course to user profile
+                await updateDoc(doc(db, "users", currentUser.uid), {
+                    purchasedCourses: arrayUnion(currentCourseId)
+                });
+
+                // Update Local Data
+                if(!userData.purchasedCourses) userData.purchasedCourses = [];
+                userData.purchasedCourses.push(currentCourseId);
+
+                successMsg.classList.remove('hidden');
+                setTimeout(() => {
+                    document.getElementById('unlock-modal').classList.add('hidden');
+                    successMsg.classList.add('hidden');
+                    btn.innerText = "تفعيل";
+                    btn.disabled = false;
+                    document.getElementById('unlock-coupon').value = "";
+                    // Play the video
+                    if (pendingVideoIndex !== null) playVideo(pendingVideoIndex);
+                }, 1500);
+
+            } catch (err) {
+                errorMsg.textContent = err.message;
+                errorMsg.classList.remove('hidden');
+                btn.innerText = "تفعيل";
+                btn.disabled = false;
+            }
+        });
+
+        window.openPlayer = async function(courseId, courseTitle) {
+            currentCourseId = courseId; // Save ID for coupon logic
+            
+            // Check if anonymous user needs to login first? 
+            // NOTE: We allow opening the player to see the free videos. Login is forced when clicking locked videos.
             
             document.getElementById('video-overlay').classList.remove('hidden');
             document.getElementById('course-title-display').innerText = courseTitle;
@@ -1405,22 +1506,9 @@
                 if (allVideos.length === 0) {
                     list.innerHTML = '<div class="text-center p-4 text-slate-400">لا توجد فيديوهات متاحة لهذه الدورة</div>';
                 } else {
-                    list.innerHTML = allVideos.map((vid, idx) => `
-                        <div onclick="playVideo(${idx})" class="playlist-item p-3 mb-2 bg-slate-700/30 rounded-xl cursor-pointer hover:bg-slate-700/50 flex justify-between items-center transition">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
-                                    <span class="text-xs font-bold">${idx + 1}</span>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-bold text-slate-200 block">${vid.title}</span>
-                                    <span class="text-xs text-slate-400">${vid.duration || '00:00'}</span>
-                                </div>
-                            </div>
-                            <i class="fas fa-play-circle text-slate-400"></i>
-                        </div>`).join('');
-                    
+                    renderPlaylist();
                     if(allVideos.length > 0) {
-                        playVideo(0);
+                        playVideo(0); // Auto play first video (always free)
                         updateProgress(0);
                     }
                 }
@@ -1430,7 +1518,50 @@
             }
         };
 
+        function isVideoLocked(idx) {
+            // Logic: 
+            // 1. Videos 0 and 1 are ALWAYS FREE (index < 2)
+            if (idx < 2) return false; 
+            
+            // 2. If user is anon, it's locked
+            if (!currentUser || currentUser.isAnonymous) return true;
+            
+            // 3. If user purchased this course
+            if (userData && userData.purchasedCourses && userData.purchasedCourses.includes(currentCourseId)) {
+                return false;
+            }
+            
+            return true; // Locked otherwise
+        }
+
+        function renderPlaylist() {
+            const list = document.getElementById('playlist-items');
+            list.innerHTML = allVideos.map((vid, idx) => {
+                const locked = isVideoLocked(idx);
+                return `
+                    <div onclick="playVideo(${idx})" class="playlist-item ${locked ? 'locked' : ''} p-3 mb-2 bg-slate-700/30 rounded-xl cursor-pointer hover:bg-slate-700/50 flex justify-between items-center transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                                <span class="text-xs font-bold">${idx + 1}</span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-bold text-slate-200 block">${vid.title}</span>
+                                <span class="text-xs text-slate-400">${vid.duration || '00:00'}</span>
+                            </div>
+                        </div>
+                        ${locked ? '<i class="fas fa-lock text-red-500"></i>' : '<i class="fas fa-play-circle text-slate-400"></i>'}
+                    </div>`;
+            }).join('');
+        }
+
         window.playVideo = function(idx) {
+            // Check Lock
+            if (isVideoLocked(idx)) {
+                pendingVideoIndex = idx;
+                document.getElementById('unlock-modal').classList.remove('hidden');
+                return;
+            }
+
             const vid = allVideos[idx];
             if(!vid) return;
 
@@ -1439,15 +1570,16 @@
             document.getElementById('video-duration').innerText = vid.duration || '00:00';
             document.getElementById('video-views').innerHTML = `<i class="fas fa-eye mr-1"></i> ${vid.views || Math.floor(Math.random() * 1000) + 500}`;
 
-            document.querySelectorAll('.playlist-item').forEach((el, i) => {
-                if(i === idx) {
-                    el.classList.add('active');
-                    el.querySelector('i').className = 'fas fa-pause-circle text-purple-500';
-                } else {
-                    el.classList.remove('active');
-                    el.querySelector('i').className = 'fas fa-play-circle text-slate-400';
-                }
-            });
+            // Re-render to show active state correctly
+            renderPlaylist();
+            
+            // Add active class
+            const items = document.querySelectorAll('.playlist-item');
+            if(items[idx]) {
+                items[idx].classList.add('active');
+                const icon = items[idx].querySelector('.fa-play-circle');
+                if(icon) icon.className = 'fas fa-pause-circle text-purple-500';
+            }
 
             const iframe = document.getElementById('main-frame');
             iframe.src = getSmartUrl(vid.youtubeId || vid.url);
