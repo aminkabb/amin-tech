@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -261,6 +260,73 @@
             opacity: 0.2;
             font-family: serif;
         }
+
+        /* Styles specifically for Auth & User Menu */
+        .user-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            min-width: 220px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .user-menu.show {
+            display: block;
+        }
+        
+        .auth-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+        
+        .auth-modal.hidden {
+            display: none;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .auth-tab.active {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #94a3b8;
+        }
         
         @media (max-width: 768px) {
             .language-switcher {
@@ -277,19 +343,16 @@
 </head>
 <body class="bg-slate-900 text-slate-100">
 
-    <!-- Language Switcher -->
     <div class="language-switcher">
         <div class="lang-btn active" data-lang="ar">ع</div>
         <div class="lang-btn" data-lang="en">EN</div>
         <div class="lang-btn" data-lang="fr">FR</div>
     </div>
     
-    <!-- Dark Mode Toggle -->
     <div class="dark-mode-toggle" id="dark-mode-toggle">
         <i class="fas fa-moon"></i>
     </div>
 
-    <!-- Video Player Overlay -->
     <div id="video-overlay" class="fixed inset-0 bg-black/95 z-50 hidden flex flex-col">
         <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/90">
             <button onclick="closePlayer()" class="bg-slate-800 hover:bg-purple-600 px-4 py-2 rounded-lg font-bold transition flex items-center gap-2">
@@ -363,7 +426,124 @@
         </div>
     </div>
 
-    <!-- Navigation -->
+    <div id="auth-modal" class="auth-modal hidden">
+        <div class="bg-slate-800 rounded-2xl max-w-md w-full overflow-hidden glass-card">
+            <div class="auth-tabs">
+                <div id="login-tab" class="auth-tab active">تسجيل الدخول</div>
+                <div id="register-tab" class="auth-tab">إنشاء حساب</div>
+            </div>
+            
+            <div id="login-form" class="p-8">
+                <h3 class="text-2xl font-bold mb-6 text-center gradient-text">مرحباً بعودتك!</h3>
+                
+                <form id="login-email-form" class="space-y-5">
+                    <div>
+                        <label class="block text-slate-300 mb-2">البريد الإلكتروني</label>
+                        <input id="login-email" type="email" placeholder="example@email.com" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                    </div>
+                    
+                    <div class="relative">
+                        <label class="block text-slate-300 mb-2">كلمة المرور</label>
+                        <input id="login-password" type="password" placeholder="أدخل كلمة المرور" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12" required>
+                        <span class="password-toggle" id="toggle-login-password">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                        <div class="flex justify-between mt-2">
+                            <label class="flex items-center gap-2 text-sm text-slate-400">
+                                <input type="checkbox" id="remember-me">
+                                تذكرني
+                            </label>
+                            <a href="#" class="text-sm text-purple-400 hover:text-purple-300">نسيت كلمة المرور؟</a>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-gradient-to-l from-purple-600 to-emerald-500 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                    </button>
+                </form>
+                
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-slate-700"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-slate-800 text-slate-400">أو سجل الدخول باستخدام</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="google-login" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fab fa-google text-red-400"></i>
+                        <span>جوجل</span>
+                    </button>
+                    <button id="github-login" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fab fa-github"></i>
+                        <span>جيت هاب</span>
+                    </button>
+                </div>
+                
+                <p id="login-error" class="text-red-400 text-center mt-4 text-sm hidden"></p>
+            </div>
+            
+            <div id="register-form" class="p-8 hidden">
+                <h3 class="text-2xl font-bold mb-6 text-center gradient-text">انضم إلينا!</h3>
+                
+                <form id="register-email-form" class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-300 mb-2">الاسم الأول</label>
+                            <input id="register-firstname" type="text" placeholder="أحمد" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 mb-2">الاسم الأخير</label>
+                            <input id="register-lastname" type="text" placeholder="محمد" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-slate-300 mb-2">البريد الإلكتروني</label>
+                        <input id="register-email" type="email" placeholder="example@email.com" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                    </div>
+                    
+                    <div class="relative">
+                        <label class="block text-slate-300 mb-2">كلمة المرور</label>
+                        <input id="register-password" type="password" placeholder="كلمة مرور قوية" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12" required>
+                        <span class="password-toggle" id="toggle-register-password">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                        <p class="text-slate-400 text-xs mt-2">يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل</p>
+                    </div>
+                    
+                    <div class="relative">
+                        <label class="block text-slate-300 mb-2">تأكيد كلمة المرور</label>
+                        <input id="register-confirm-password" type="password" placeholder="أعد إدخال كلمة المرور" class="w-full p-4 rounded-xl bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12" required>
+                        <span class="password-toggle" id="toggle-confirm-password">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    
+                    <label class="flex items-start gap-2 text-sm text-slate-400">
+                        <input type="checkbox" id="terms" required class="mt-1">
+                        <span>أوافق على <a href="#" class="text-purple-400 hover:text-purple-300">شروط الاستخدام</a> و <a href="#" class="text-purple-400 hover:text-purple-300">سياسة الخصوصية</a></span>
+                    </label>
+                    
+                    <button type="submit" class="w-full bg-gradient-to-l from-purple-600 to-emerald-500 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-user-plus"></i> إنشاء حساب
+                    </button>
+                </form>
+                
+                <p id="register-error" class="text-red-400 text-center mt-4 text-sm hidden"></p>
+                <p id="register-success" class="text-green-400 text-center mt-4 text-sm hidden"></p>
+            </div>
+            
+            <div class="p-4 border-t border-slate-700 text-center">
+                <button id="close-auth-modal" class="text-slate-400 hover:text-white transition">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
     <nav class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-lg border-b border-white/10 py-4">
         <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -382,17 +562,66 @@
             </div>
             
             <div class="flex items-center gap-4">
+                <div id="user-profile" class="hidden items-center gap-3 relative">
+                    <div id="user-avatar" class="w-10 h-10 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center text-white font-bold text-sm cursor-pointer">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="hidden lg:block">
+                        <p id="user-name" class="font-bold text-sm"></p>
+                        <p id="user-email" class="text-slate-400 text-xs"></p>
+                    </div>
+                    
+                    <div id="user-menu" class="user-menu">
+                        <div class="p-4 border-b border-white/5">
+                            <div class="flex items-center gap-3">
+                                <div id="user-menu-avatar" class="w-12 h-12 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center text-white font-bold">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <p id="user-menu-name" class="font-bold"></p>
+                                    <p id="user-menu-email" class="text-slate-400 text-sm"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-2">
+                            <a href="#courses" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-700/50 transition">
+                                <i class="fas fa-book text-slate-400"></i>
+                                <span>كورساتي</span>
+                            </a>
+                            <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-700/50 transition">
+                                <i class="fas fa-chart-line text-slate-400"></i>
+                                <span>تقدمي</span>
+                            </a>
+                            <a href="#" class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-700/50 transition">
+                                <i class="fas fa-cog text-slate-400"></i>
+                                <span>الإعدادات</span>
+                            </a>
+                        </div>
+                        
+                        <div class="p-2 border-t border-white/5">
+                            <button id="logout-btn" class="w-full flex items-center justify-center gap-3 p-3 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>تسجيل الخروج</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="login-btn" class="bg-gradient-to-l from-purple-600 to-emerald-500 px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 transition pulse">
+                    <i class="fas fa-user mr-2"></i>تسجيل الدخول
+                </button>
+                
                 <button id="search-btn" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-lg">
                     <i class="fas fa-search"></i>
                 </button>
-                <a href="#contact" class="bg-gradient-to-l from-purple-600 to-emerald-500 px-5 py-2 rounded-full font-bold text-sm hover:opacity-90 transition pulse">ابدأ الآن</a>
+                
                 <button id="mobile-menu-btn" class="lg:hidden bg-slate-800 p-2 rounded-lg">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
         </div>
         
-        <!-- Mobile Menu -->
         <div id="mobile-menu" class="lg:hidden bg-slate-900 border-t border-white/10 mt-4 p-4 hidden">
             <div class="flex flex-col gap-4">
                 <a href="#home" class="py-2 font-bold">الرئيسية</a>
@@ -400,10 +629,10 @@
                 <a href="#features" class="py-2">المميزات</a>
                 <a href="#testimonials" class="py-2">آراء العملاء</a>
                 <a href="#contact" class="py-2">اتصل بنا</a>
+                <div id="mobile-user-section" class="pt-4 border-t border-white/5"></div>
             </div>
         </div>
         
-        <!-- Search Bar -->
         <div id="search-bar" class="max-w-3xl mx-auto mt-4 px-4 hidden">
             <div class="relative">
                 <input type="text" id="search-input" placeholder="ابحث عن كورس أو درس..." class="w-full p-4 pr-12 rounded-xl bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
@@ -417,7 +646,6 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section id="home" class="hero-gradient py-20 px-4 relative overflow-hidden">
         <div class="max-w-7xl mx-auto">
             <div class="grid lg:grid-cols-2 gap-12 items-center">
@@ -433,7 +661,7 @@
                         انضم إلى آلاف المتعلمين الذين طوروا مهاراتهم التقنية مع منصتنا ووصلوا إلى أهدافهم المهنية
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                        <button onclick="openPlayer('all', 'جميع الكورسات')" class="bg-gradient-to-l from-purple-600 to-emerald-500 px-8 py-3 rounded-xl font-bold text-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+                        <button id="start-learning-btn" class="bg-gradient-to-l from-purple-600 to-emerald-500 px-8 py-3 rounded-xl font-bold text-lg hover:opacity-90 transition flex items-center justify-center gap-2">
                             <i class="fas fa-play-circle"></i> ابدأ التعلم الآن
                         </button>
                         <a href="#courses" class="bg-slate-800 hover:bg-slate-700 px-8 py-3 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2">
@@ -475,7 +703,6 @@
         </div>
     </section>
 
-    <!-- Courses Section -->
     <section id="courses" class="py-20 px-4">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
@@ -483,7 +710,6 @@
                 <p class="text-xl text-slate-400 max-w-3xl mx-auto">اختر من بين مجموعة واسعة من الكورسات التقنية التي صممت خصيصاً لمساعدتك على النجاح في سوق العمل</p>
             </div>
             
-            <!-- Categories -->
             <div class="flex flex-wrap gap-4 justify-center mb-10">
                 <button class="category-btn active px-5 py-2 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 font-bold" data-category="all">الكل</button>
                 <button class="category-btn px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 font-bold" data-category="web">تطوير الويب</button>
@@ -509,7 +735,6 @@
         </div>
     </section>
 
-    <!-- Features Section -->
     <section id="features" class="py-20 bg-slate-800/50 px-4">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
@@ -553,7 +778,6 @@
         </div>
     </section>
 
-    <!-- Testimonials Section -->
     <section id="testimonials" class="py-20 px-4">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
@@ -625,7 +849,6 @@
         </div>
     </section>
 
-    <!-- Contact Section -->
     <section id="contact" class="py-20 bg-slate-800 px-4">
         <div class="max-w-4xl mx-auto">
             <div class="grid lg:grid-cols-2 gap-12 items-center">
@@ -725,7 +948,6 @@
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="py-12 bg-slate-900 border-t border-white/5">
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid md:grid-cols-4 gap-8 mb-10">
@@ -779,9 +1001,35 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { 
+            initializeApp 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signInWithPopup, 
+            signInAnonymously, // <-- تمت الإضافة هنا للحل السحري
+            GoogleAuthProvider, 
+            GithubAuthProvider, 
+            signOut, 
+            onAuthStateChanged,
+            updateProfile
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            query, 
+            where, 
+            serverTimestamp,
+            doc,
+            setDoc,
+            getDoc
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCI49mQ4v0xRO1RsbiAD23VLZEvzqZI3IE",
@@ -795,39 +1043,352 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+        const githubProvider = new GithubAuthProvider();
+        
         let allVideos = [];
         let allCourses = [];
         let currentCategory = 'all';
+        let currentUser = null;
+        let userData = null;
 
-        signInAnonymously(auth).then(() => {
-            loadCourses();
-            loadTestimonials();
-        }).catch(e => console.error("Auth Error:", e));
+        // --- Logic: Handle Auth State & "Ghost" Visitor Login ---
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            
+            if (user) {
+                // User is authenticated (either anonymously or real)
+                if (user.isAnonymous) {
+                    // Visitor Mode: Hide profile, show login button
+                    hideUserProfile();
+                    loadCourses();
+                    loadTestimonials();
+                } else {
+                    // Real User: Show profile
+                    await loadUserData(user.uid);
+                    showUserProfile(user);
+                    loadCourses();
+                    loadTestimonials();
+                }
+            } else {
+                // No user at all? Log in anonymously immediately!
+                // This mimics the old code's behavior to ensure data loads.
+                signInAnonymously(auth).catch((error) => {
+                    console.error("Anonymous auth failed", error);
+                });
+            }
+        });
 
-        // ---[ الدالة المعجزة للفصل بين يوتيوب ودرايف ]---
+        async function loadUserData(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", userId));
+                if (userDoc.exists()) {
+                    userData = userDoc.data();
+                } else {
+                    userData = {
+                        name: currentUser.displayName || "مستخدم جديد",
+                        email: currentUser.email,
+                        photoURL: currentUser.photoURL || "",
+                        createdAt: serverTimestamp(),
+                        lastLogin: serverTimestamp(),
+                        enrolledCourses: [],
+                        progress: {}
+                    };
+                    // Only save to DB if it's NOT anonymous
+                    if (!currentUser.isAnonymous) {
+                        await setDoc(doc(db, "users", userId), userData);
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading user data:", error);
+            }
+        }
+
+        function showUserProfile(user) {
+            document.getElementById('login-btn').classList.add('hidden');
+            document.getElementById('user-profile').classList.remove('hidden');
+            
+            const userName = user.displayName || user.email.split('@')[0];
+            const userInitials = getInitials(userName);
+            
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-email').textContent = user.email;
+            document.getElementById('user-menu-name').textContent = userName;
+            document.getElementById('user-menu-email').textContent = user.email;
+            
+            const avatar = document.getElementById('user-avatar');
+            const menuAvatar = document.getElementById('user-menu-avatar');
+            
+            if (user.photoURL) {
+                avatar.innerHTML = `<img src="${user.photoURL}" class="w-full h-full rounded-full object-cover">`;
+                menuAvatar.innerHTML = `<img src="${user.photoURL}" class="w-full h-full rounded-full object-cover">`;
+            } else {
+                avatar.textContent = userInitials;
+                menuAvatar.textContent = userInitials;
+            }
+            
+            const mobileUserSection = document.getElementById('mobile-user-section');
+            mobileUserSection.innerHTML = `
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-l from-purple-600 to-emerald-500 flex items-center justify-center text-white font-bold">
+                        ${user.photoURL ? 
+                            `<img src="${user.photoURL}" class="w-full h-full rounded-full object-cover">` : 
+                            userInitials}
+                    </div>
+                    <div>
+                        <p class="font-bold">${userName}</p>
+                        <p class="text-slate-400 text-sm">${user.email}</p>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <a href="#courses" class="block py-2 hover:text-purple-400">كورساتي</a>
+                    <a href="#" class="block py-2 hover:text-purple-400">تقدمي</a>
+                    <a href="#" class="block py-2 hover:text-purple-400">الإعدادات</a>
+                    <button id="mobile-logout-btn" class="w-full text-right py-2 text-red-400 hover:text-red-300">
+                        تسجيل الخروج
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('mobile-logout-btn')?.addEventListener('click', handleLogout);
+        }
+
+        function hideUserProfile() {
+            document.getElementById('login-btn').classList.remove('hidden');
+            document.getElementById('user-profile').classList.add('hidden');
+            
+            const mobileUserSection = document.getElementById('mobile-user-section');
+            mobileUserSection.innerHTML = '';
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(word => word[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        document.getElementById('login-btn').addEventListener('click', () => {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            switchToLoginTab();
+        });
+
+        document.getElementById('close-auth-modal').addEventListener('click', () => {
+            document.getElementById('auth-modal').classList.add('hidden');
+        });
+
+        document.getElementById('login-tab').addEventListener('click', switchToLoginTab);
+        document.getElementById('register-tab').addEventListener('click', switchToRegisterTab);
+
+        function switchToLoginTab() {
+            document.getElementById('login-tab').classList.add('active');
+            document.getElementById('register-tab').classList.remove('active');
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        }
+
+        function switchToRegisterTab() {
+            document.getElementById('register-tab').classList.add('active');
+            document.getElementById('login-tab').classList.remove('active');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+        }
+
+        document.getElementById('login-email-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorElement = document.getElementById('login-error');
+            
+            try {
+                // This will automatically sign out the anonymous user and sign in the real one
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById('auth-modal').classList.add('hidden');
+                errorElement.classList.add('hidden');
+            } catch (error) {
+                errorElement.textContent = getAuthErrorMessage(error.code);
+                errorElement.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('register-email-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('register-firstname').value;
+            const lastName = document.getElementById('register-lastname').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            
+            const errorElement = document.getElementById('register-error');
+            const successElement = document.getElementById('register-success');
+            
+            if (password !== confirmPassword) {
+                errorElement.textContent = "كلمات المرور غير متطابقة";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            if (password.length < 6) {
+                errorElement.textContent = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+                errorElement.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                // Link or Sign in - this handles the transition from anonymous to real
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                await updateProfile(userCredential.user, {
+                    displayName: `${firstName} ${lastName}`
+                });
+                
+                await setDoc(doc(db, "users", userCredential.user.uid), {
+                    firstName,
+                    lastName,
+                    email,
+                    createdAt: serverTimestamp(),
+                    lastLogin: serverTimestamp(),
+                    enrolledCourses: [],
+                    progress: {}
+                });
+                
+                successElement.textContent = "تم إنشاء حسابك بنجاح!";
+                successElement.classList.remove('hidden');
+                errorElement.classList.add('hidden');
+                
+                setTimeout(() => {
+                    switchToLoginTab();
+                    successElement.classList.add('hidden');
+                }, 2000);
+                
+            } catch (error) {
+                errorElement.textContent = getAuthErrorMessage(error.code);
+                errorElement.classList.remove('hidden');
+                successElement.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('google-login').addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, googleProvider);
+                document.getElementById('auth-modal').classList.add('hidden');
+            } catch (error) {
+                document.getElementById('login-error').textContent = getAuthErrorMessage(error.code);
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('github-login').addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, githubProvider);
+                document.getElementById('auth-modal').classList.add('hidden');
+            } catch (error) {
+                document.getElementById('login-error').textContent = getAuthErrorMessage(error.code);
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                document.getElementById('user-menu').classList.remove('show');
+                // The onAuthStateChanged will trigger, see "user is null", and automatically
+                // sign in anonymously again so the user can still see the courses as a visitor.
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        }
+
+        document.getElementById('user-avatar').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('user-menu').classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            const userMenu = document.getElementById('user-menu');
+            const userAvatar = document.getElementById('user-avatar');
+            
+            if (!userAvatar.contains(e.target) && !userMenu.contains(e.target)) {
+                userMenu.classList.remove('show');
+            }
+        });
+
+        function getAuthErrorMessage(errorCode) {
+            const messages = {
+                'auth/invalid-email': 'البريد الإلكتروني غير صالح',
+                'auth/user-disabled': 'تم تعطيل هذا الحساب',
+                'auth/user-not-found': 'لا يوجد حساب بهذا البريد الإلكتروني',
+                'auth/wrong-password': 'كلمة المرور غير صحيحة',
+                'auth/email-already-in-use': 'هذا البريد الإلكتروني مستخدم بالفعل',
+                'auth/weak-password': 'كلمة المرور ضعيفة جداً',
+                'auth/operation-not-allowed': 'هذه العملية غير مسموحة',
+                'auth/too-many-requests': 'محاولات كثيرة جداً، حاول مرة أخرى لاحقاً'
+            };
+            
+            return messages[errorCode] || 'حدث خطأ غير متوقع';
+        }
+
+        // Toggle Password Visibility
+        function setupPasswordToggle(toggleId, inputId) {
+            const toggle = document.getElementById(toggleId);
+            if(toggle) {
+                toggle.addEventListener('click', function() {
+                    const input = document.getElementById(inputId);
+                    const icon = this.querySelector('i');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.className = 'fas fa-eye-slash';
+                    } else {
+                        input.type = 'password';
+                        icon.className = 'fas fa-eye';
+                    }
+                });
+            }
+        }
+
+        setupPasswordToggle('toggle-login-password', 'login-password');
+        setupPasswordToggle('toggle-register-password', 'register-password');
+        setupPasswordToggle('toggle-confirm-password', 'register-confirm-password');
+
+        // --- Video Player Logic ---
+
+        // Helper function for YouTube/Drive links
         function getSmartUrl(url) {
             if (!url) return "";
             
-            // 1. لو يوتيوب (بكل أشكاله)
+            // 1. YouTube
             if (url.includes("youtu")) {
                 const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
                 const match = url.match(regExp);
                 const id = (match && match[2].length === 11) ? match[2] : null;
-                // بنستخدم embed عادي عشان يشتغل على كل الأجهزة
                 return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&showinfo=0` : url;
             }
             
-            // 2. لو جوجل درايف (الحل النهائي)
+            // 2. Google Drive
             if (url.includes("drive.google.com")) {
-                // بنحول رابط /view لـ /preview عشان يشتغل embed
                 return url.replace("/view", "/preview").replace("usp=sharing", "") + "?autoplay=1";
             }
 
-            // 3. أي رابط تاني رجعه زي ما هو
             return url;
         }
 
         window.openPlayer = async function(courseId, courseTitle) {
+            // Here, we check if the user is ANONYMOUS. If so, we force login.
+            // If they are a real user (not anonymous), we let them play.
+            if (!currentUser || currentUser.isAnonymous) {
+                const loginBtn = document.getElementById('login-btn');
+                if(loginBtn) {
+                    loginBtn.classList.add('animate__animated', 'animate__pulse');
+                    setTimeout(() => {
+                        loginBtn.classList.remove('animate__animated', 'animate__pulse');
+                    }, 1000);
+                }
+                
+                document.getElementById('auth-modal').classList.remove('hidden');
+                switchToLoginTab();
+                return;
+            }
+            
             document.getElementById('video-overlay').classList.remove('hidden');
             document.getElementById('course-title-display').innerText = courseTitle;
             const list = document.getElementById('playlist-items');
@@ -873,13 +1434,11 @@
             const vid = allVideos[idx];
             if(!vid) return;
 
-            // تحديث العناوين
             document.getElementById('video-title-display').innerText = vid.title;
             document.getElementById('video-desc-display').innerText = vid.desc || 'لا يوجد وصف متاح';
             document.getElementById('video-duration').innerText = vid.duration || '00:00';
             document.getElementById('video-views').innerHTML = `<i class="fas fa-eye mr-1"></i> ${vid.views || Math.floor(Math.random() * 1000) + 500}`;
 
-            // تلوين العنصر النشط
             document.querySelectorAll('.playlist-item').forEach((el, i) => {
                 if(i === idx) {
                     el.classList.add('active');
@@ -890,11 +1449,9 @@
                 }
             });
 
-            // تشغيل الفيديو باستخدام الدالة المعجزة
             const iframe = document.getElementById('main-frame');
             iframe.src = getSmartUrl(vid.youtubeId || vid.url);
             
-            // تحديث التقدم
             updateProgress(idx);
         };
         
@@ -911,7 +1468,8 @@
             document.getElementById('main-frame').src = '';
         };
         
-        // دالة تحميل الكورسات
+        // --- Course Loading Logic ---
+
         async function loadCourses() {
             const grid = document.getElementById('courses-grid');
             const loader = document.getElementById('loader');
@@ -996,7 +1554,8 @@
             return categories[cat] || 'عام';
         }
         
-        // إرسال الطلب
+        // --- Form Handling ---
+
         document.getElementById('hire-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -1034,29 +1593,22 @@
             }
         });
         
-        // تحميل آراء العملاء (بيانات وهمية للعرض)
         function loadTestimonials() {
-            // يمكن استبدال هذا ببيانات حقيقية من Firebase
             console.log("Testimonials loaded");
         }
         
-        // ---[ تحسينات الواجهة والتجربة ]---
-        
-        // تبديل اللغة
+        // --- UI Interactions ---
+
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 
-                // هنا يمكن إضافة منطق تبديل المحتوى حسب اللغة
                 const lang = this.getAttribute('data-lang');
                 console.log(`تم التبديل إلى اللغة: ${lang}`);
-                
-                // يمكن إضافة مكتبة i18n للترجمة الفعلية
             });
         });
         
-        // تبديل وضع الظلام/الفاتح
         document.getElementById('dark-mode-toggle').addEventListener('click', function() {
             const icon = this.querySelector('i');
             if (document.body.classList.contains('bg-slate-900')) {
@@ -1074,7 +1626,6 @@
             }
         });
         
-        // تصفية الكورسات حسب التصنيف
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.category-btn').forEach(b => {
@@ -1090,7 +1641,6 @@
             });
         });
         
-        // شريط البحث
         document.getElementById('search-btn').addEventListener('click', function() {
             const searchBar = document.getElementById('search-bar');
             searchBar.classList.toggle('hidden');
@@ -1100,7 +1650,6 @@
             }
         });
         
-        // البحث المباشر
         document.getElementById('search-input').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const resultsDiv = document.getElementById('search-results');
@@ -1110,7 +1659,6 @@
                 return;
             }
             
-            // فلترة الكورسات حسب مصطلح البحث
             const filtered = allCourses.filter(course => 
                 course.title.toLowerCase().includes(searchTerm) || 
                 (course.desc && course.desc.toLowerCase().includes(searchTerm))
@@ -1133,28 +1681,23 @@
             }
         });
         
-        // القائمة المتنقلة
         document.getElementById('mobile-menu-btn').addEventListener('click', function() {
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
         
-        // إغلاق القائمة عند النقر على رابط
         document.querySelectorAll('#mobile-menu a').forEach(link => {
             link.addEventListener('click', () => {
                 document.getElementById('mobile-menu').classList.add('hidden');
             });
         });
         
-        // زر تحميل المزيد
         document.getElementById('load-more').addEventListener('click', function() {
-            // في تطبيق حقيقي، هنا يتم جلب المزيد من البيانات من Firebase
             this.innerHTML = '<i class="fas fa-check-circle"></i> تم تحميل جميع الكورسات';
             this.disabled = true;
             this.classList.remove('bg-slate-800', 'hover:bg-slate-700');
             this.classList.add('bg-emerald-600');
         });
         
-        // وظائف مشغل الفيديو المتقدمة
         document.getElementById('fullscreen-btn').addEventListener('click', function() {
             const iframe = document.getElementById('main-frame');
             if (iframe.requestFullscreen) {
@@ -1166,7 +1709,6 @@
             }
         });
         
-        // Picture-in-Picture (إذا كان المدعوم)
         document.getElementById('pip-btn').addEventListener('click', function() {
             const iframe = document.getElementById('main-frame');
             if (document.pictureInPictureEnabled && iframe.contentDocument) {
@@ -1178,7 +1720,6 @@
             }
         });
         
-        // التنقل السلس
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1195,17 +1736,25 @@
             });
         });
         
-        // تحميل المزيد من المحتوى عند التمرير
-        window.addEventListener('scroll', function() {
-            const scrollPosition = window.scrollY + window.innerHeight;
-            const pageHeight = document.documentElement.scrollHeight;
-            
-            if (scrollPosition >= pageHeight - 500) {
-                // يمكن تحميل المزيد من المحتوى هنا
+        document.getElementById('start-learning-btn').addEventListener('click', function() {
+            if (!currentUser || currentUser.isAnonymous) {
+                const loginBtn = document.getElementById('login-btn');
+                if(loginBtn) {
+                    loginBtn.classList.add('animate__animated', 'animate__pulse');
+                    setTimeout(() => {
+                        loginBtn.classList.remove('animate__animated', 'animate__pulse');
+                    }, 1000);
+                }
+                
+                document.getElementById('auth-modal').classList.remove('hidden');
+                switchToLoginTab();
+            } else {
+                if (allCourses.length > 0) {
+                    openPlayer(allCourses[0].id, allCourses[0].title);
+                }
             }
         });
         
-        // إظهار زر للعودة للأعلى
         const backToTop = document.createElement('button');
         backToTop.innerHTML = '<i class="fas fa-arrow-up"></i>';
         backToTop.className = 'fixed bottom-24 left-6 w-12 h-12 rounded-full bg-slate-800/80 backdrop-blur border border-white/10 text-white cursor-pointer hidden z-40 hover:bg-slate-700 transition';
@@ -1224,7 +1773,6 @@
             }
         });
         
-        // تحسينات أداء الصور
         document.addEventListener('DOMContentLoaded', function() {
             const images = document.querySelectorAll('img');
             images.forEach(img => {
@@ -1232,7 +1780,6 @@
             });
         });
         
-        // تهيئة أولية
         setTimeout(() => {
             const typewriter = document.querySelector('.typewriter');
             if (typewriter) {
@@ -1243,7 +1790,6 @@
             }
         }, 1000);
         
-        // إضافة تأثيرات عند التمرير
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -100px 0px'
@@ -1257,7 +1803,6 @@
             });
         }, observerOptions);
         
-        // مراقبة العناصر لإضافة تأثيرات
         document.querySelectorAll('.glass-card, .stats-card, .testimonial-card').forEach(el => {
             observer.observe(el);
         });
